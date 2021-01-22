@@ -40,16 +40,17 @@ async def on_ready():
                 jsonPack = messageQueue.pop(0)
                 print(jsonPack)
                 channel = bot.get_channel(jsonPack['channel'])
+                ichannel = bot.get_channel(555038123961090050)
                 if jsonPack['response_id'] is None:
                     if type(jsonPack['output']) is str:
                         if os.path.isfile(jsonPack['output']):
                             if jsonPack['output'][-4:] in acceptedEnds:  # every file we try to upload has to end with one of the 3 above endings, for safety
                                 try:  # just in case for some reason something ends with that but isn't a valid filename...
-                                    sent_message = await channel.send(file=discord.File(jsonPack['output']))
+                                    sent_message = await ichannel.send(file=discord.File(jsonPack['output']))
                                     url = sent_message.attachments[0].url
                                     sent_message2 = await channel.send(url)
-                                    await asyncio.sleep(0.1)
-                                    await sent_message.delete()
+                                    # await asyncio.sleep(0.1)
+                                    # await sent_message.delete()
                                     watchlist[jsonPack['message_id']] = sent_message2.id
                                     print(watchlist)
                                 except Exception as e:
@@ -68,11 +69,11 @@ async def on_ready():
                         if os.path.isfile(jsonPack['output']):
                             if jsonPack['output'][-4:] in acceptedEnds:  # every file we try to upload has to end with one of the 3 above endings, for safety
                                 try:  # just in case for some reason something ends with that but isn't a valid filename...
-                                    sent_message = await channel.send(file=discord.File(jsonPack['output']))
+                                    sent_message = await ichannel.send(file=discord.File(jsonPack['output']))
                                     url = sent_message.attachments[0].url
                                     await message.edit(content=url)
-                                    await asyncio.sleep(0.1)
-                                    await sent_message.delete()
+                                    # await asyncio.sleep(2)
+                                    # await sent_message.delete()
                                 except Exception as e:
                                     await message.edit(content=str(e))
                                 if jsonPack['output'][0:5].isdigit():

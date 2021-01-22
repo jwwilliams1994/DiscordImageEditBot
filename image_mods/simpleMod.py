@@ -888,3 +888,129 @@ def maskingGif4(emoGif, n, emojiId):
     images[0].save(str(emojiId) + 'masking.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, transparency=255,
                    disposal=2)
     return str(emojiId) + 'masking.gif'
+
+def lcdize(image, do, noise):
+    image = image.convert('RGBA')
+    pix = Image.open('pixels/6x6.png')
+    width, height = pix.size
+    bx, by = image.size
+    result = Image.new('RGBA', (width * bx, height * by), (0, 0, 0, 0))
+
+    pixl = pix.load()
+    blockl = image.load()
+    resultl = result.load()
+    for x in range(bx):
+        for y in range(by):
+            r, g, b, a = blockl[x, y]
+            if do:
+                r = round((a / 255) * r)
+                if r < 24:
+                    r = 24
+                g = round((a / 255) * g)
+                if g < 24:
+                    g = 24
+                b = round((a / 255) * b)
+                if b < 24:
+                    b = 24
+            if noise > 0:
+                noiseadd = random.randint(-noise, noise)
+                r = r + noiseadd
+                g = g + noiseadd
+                b = b + noiseadd
+                if r > 255:
+                    r = 255
+                if r < 0:
+                    r = 0
+                if g > 255:
+                    g = 255
+                if g < 0:
+                    g = 0
+                if b > 255:
+                    b = 255
+                if b < 0:
+                    b = 0
+            for x2 in range(width):
+                for y2 in range(height):
+                    try:
+                        r2, g2, b2, a2 = pixl[x2, y2]
+                    except:
+                        r2, g2, b2 = pixl[x2, y2]
+                    if r2 == 255:
+                        r3 = r
+
+                    elif g2 == 255:
+                        g3 = g
+
+                    elif b2 == 255:
+                        b3 = b
+
+                    else:
+                        r3, g3, b3 = (0, 0, 0)
+                        # r3 = round(r / 16)
+                        # g3 = round(g / 16)
+                        # b3 = round(b / 16)
+                    a3 = a
+                    if do:
+                        if a3 < 255:
+                            a3 = 255
+                    resultl[x*width + x2, y*height + y2] = r3, g3, b3, a3
+    return result
+
+def lcdPng(emoPng, emojiId):
+    emoPng = lcdize(emoPng, False, 0)
+    emoPng.save(str(emojiId) + 'lcd.png')
+    return str(emojiId) + 'lcd.png'
+
+def lcdGif(emoGif, emojiId):
+    totalFrames = emoGif.n_frames
+    gifDuration = emoGif.info['duration']
+    images = []
+    for f in range(totalFrames):
+        emoGif.seek(f)
+        img = lcdize(emoGif.copy().convert('RGBA'), False, 0)
+        alpha = img.split()[3]
+        img = img.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
+        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+        img.paste(255, mask)
+        images.append(img)
+    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, transparency=255,
+                   disposal=2)
+    return str(emojiId) + 'lcd.gif'
+
+def lcdPng2(emoPng, emojiId):
+    emoPng = lcdize(emoPng, True, 0)
+    emoPng.save(str(emojiId) + 'lcd.png')
+    return str(emojiId) + 'lcd.png'
+
+def lcdGif2(emoGif, emojiId):
+    totalFrames = emoGif.n_frames
+    gifDuration = emoGif.info['duration']
+    images = []
+    for f in range(totalFrames):
+        emoGif.seek(f)
+        img = lcdize(emoGif.copy().convert('RGBA'), True, 0).convert('P', palette=Image.ADAPTIVE, colors=255)
+        images.append(img)
+    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, transparency=255,
+                   disposal=2)
+    return str(emojiId) + 'lcd.gif'
+
+def lcdPng3(emoPng, noise, emojiId):
+    images = []
+    for i in range(10):
+        emoImg = lcdize(emoPng, True, noise).convert('P', palette=Image.ADAPTIVE, colors=255)
+        images.append(emoImg)
+    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
+                   disposal=2)
+    return str(emojiId) + 'lcd.gif'
+
+def lcdGif3(emoGif, noise, emojiId):
+    totalFrames = emoGif.n_frames
+    gifDuration = emoGif.info['duration']
+    images = []
+    for f in range(totalFrames):
+        emoGif.seek(f)
+        img = lcdize(emoGif.copy().convert('RGBA'), True, noise).convert('P', palette=Image.ADAPTIVE, colors=255)
+        images.append(img)
+    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, transparency=255,
+                   disposal=2)
+    return str(emojiId) + 'lcd.gif'

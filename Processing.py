@@ -24,7 +24,7 @@ from image_mods.simpleMod import rotateImg, rotateGif, flipImg, flipGif, hyperIm
     crop, cropGif, \
     thinking, thinkingGif, transparency, transparencyGif, save, saveGif, append, appendGif, getUrl, areyousure, justdoit, couch, manydoors, maskingPng, \
     maskingGif, \
-    maskingPng2, maskingGif2, maskingOne, maskingTwo, maskingPng4, maskingGif4
+    maskingPng2, maskingGif2, maskingOne, maskingTwo, maskingPng4, maskingGif4, lcdPng, lcdGif, lcdPng2, lcdGif2, lcdPng3, lcdGif3
 from image_mods.textual import magicConch
 from image_mods.ThreeDrendering import rendering3d, rendering3d2, rendering3dSpot, rendering3dSpotGif, renderingShrink3d, renderingShrink3dGif, \
     rendering3dSpotvol, \
@@ -48,7 +48,8 @@ dict = {"intense": [intensifytext], "speed": [speedtext], "mocking": [mockingSpo
         "think": [thinking, thinkingGif], "alpha": [transparency, transparencyGif], "illegal": [rendering3dSpotCop], "save": [save, saveGif],
         "append": [append, appendGif], "snap4": [processSnapImage4, processSnapGif4], "atmograph": [atmograph2], "geturl": [getUrl],
         "areyousure": [areyousure], "justdoit": [justdoit], "couch": [couch], "manydoors": [manydoors], "mask": [maskingPng, maskingGif],
-        "mask2": [maskingPng2, maskingGif2], "mask3": [maskingOne, maskingOne], "overlaying": [maskingTwo, maskingTwo], "mask4": [maskingPng4, maskingGif4]}
+        "mask2": [maskingPng2, maskingGif2], "mask3": [maskingOne, maskingOne], "overlaying": [maskingTwo, maskingTwo], "mask4": [maskingPng4, maskingGif4],
+        "lcd": [lcdPng, lcdGif], "lcd2": [lcdPng2, lcdGif2], "lcd3": [lcdPng3, lcdGif3]}
 
 
 def grabImage(urll):  # if you direct link to a png/gif/etc, it will directly return it as a bytestream of the image
