@@ -12,7 +12,7 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
 messageQueue = []
-acceptedEnds = ['.png', '.gif', '.jpg']
+acceptedEnds = ['.png', '.gif', '.jpg', 'webm', '.avi', '.mp4', '.mov']
 watchlist = {}
 
 bot = commands.Bot(command_prefix=';')

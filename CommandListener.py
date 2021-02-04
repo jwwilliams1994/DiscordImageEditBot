@@ -64,6 +64,40 @@ async def magicConch(ctx):
 #     payload = json.dumps({"channel": ctx.channel.id, "message_id": ctx.message.id, "userinput": message, "response_id": None})
 #     client.send(payload)
 
+@bot.command(name='time')
+async def givetime(ctx):
+    d = datetime.datetime.now(datetime.timezone.utc)
+    print(d.hour, d.minute, d.second)
+    hours = ["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"]
+    minutesten = ["O\'", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"]
+    minutesone = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+    minutesteen = ["", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"]
+    if d.hour > 12 + 5:
+        first = hours[d.hour - 12 - 6]
+    else:
+        first = hours[d.hour - 6]
+    if d.minute < 11 or d.minute > 19:
+        if d.minute >= 10:
+            if str(d.minute)[1] != "0":
+                second = minutesten[int(str(d.minute)[0])] + "-" + minutesone[int(str(d.minute)[1])]
+            else:
+                second = minutesten[int(str(d.minute)[0])]
+        else:
+            second = "O\'" + minutesone[d.minute]
+    else:
+        second = minutesteen[d.minute - 10]
+    if d.second < 11 or d.second > 19:
+        if d.second >= 10:
+            if str(d.second)[1] != "0":
+                third = minutesten[int(str(d.second)[0])] + "-" + minutesone[int(str(d.second)[1])]
+            else:
+                third = minutesten[int(str(d.second)[0])]
+        else:
+            third = minutesone[d.second]
+    else:
+        third = minutesteen[d.second - 10]
+    string = "The time is: " + first + " " + second + " and " + third + " seconds."
+    await ctx.channel.send(string)
 
 @bot.command(name='why')
 async def fortheglory(context):
@@ -82,6 +116,21 @@ async def iguess(context, *, message):
     if message == 'guess':
         ##await context.channel.send(file=discord.File('iguess.gif'))
         await context.channel.send('https://i.imgur.com/MMaciGr.gif')
+
+
+@bot.command(name='test')
+async def test(ctx):
+    await ctx.channel.send('<:hcjGrip:309376596903723008>')
+
+
+@bot.command(name='pfp')
+async def getp(ctx, id):
+    try:
+        user = await bot.fetch_user(int(id))
+        avatar = user.avatar_url
+        await ctx.channel.send(avatar)
+    except Exception as e:
+        await ctx.channel.send(e)
 
 
 @bot.command(name='God')

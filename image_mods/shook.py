@@ -242,8 +242,8 @@ def processCrazyShookImage(emoPng, emojiId):  # is this even used?
     frames = 60 - 1
     ##img = Image.new('RGBA', (80,80), (0, 0 ,0 ,0))
     canvas = Image.open('canvas.png').resize((50, 50))
-    frequency = 3
-    frequency2 = 6
+    frequency = 0
+    frequency2 = 0
     emoPng = emoPng.convert('RGBA')
     for i in range(0, frames, 1):
         ##canvas = img2.copy()
@@ -252,9 +252,12 @@ def processCrazyShookImage(emoPng, emojiId):  # is this even used?
             image = emoPng.copy().resize((50, round(50 * ratio)), Image.BICUBIC)
         else:
             image = emoPng.copy().resize((50, round(50 * ratio)), Image.NEAREST)
-        image = image.rotate(round(8 * math.sin(((2 * math.pi) / frequency) * (i - frequency)) + (i * 6)), Image.BICUBIC, expand=0)
-        offsetX = round(2 * 0.8 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)) + ((i * 50) / 30))
-        offsetY = round(2 * 0.2 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)) + ((i * 50 * ratio) / 60))
+        # image = image.rotate(round(8 * math.sin(((2 * math.pi) / frequency) * (i - frequency)) + (i * 6)), Image.BICUBIC, expand=0)
+        image = image.rotate((i * 6), Image.BICUBIC, expand=0)
+        # offsetX = round(2 * 0.8 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)) + ((i * 50) / 30))
+        # offsetY = round(2 * 0.2 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)) + ((i * 50 * ratio) / 60))
+        offsetX = round((i * 50) / 30)
+        offsetY = round((i * 50 * ratio) / 60)
         image2 = ImageChops.offset(image, offsetX, offsetY)
         croppedImage = image2
         alpha = croppedImage.split()[3]
@@ -389,3 +392,108 @@ def processNukeGif(emoGif, emojiId):
         images.append(croppedImage)
     images[0].save(emojiId + 'nuke.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
     return emojiId + 'nuke.gif'
+
+
+def jumble(arr):
+    out = []
+    total = len(arr)
+    for i in range(total):
+        out.append(arr.pop(random.randint(0, len(arr)-1)))
+    return out
+
+
+def holdImage(arr):  # there are 9 total image spots
+    images = arr
+    one1 = Image.open("Base.png").copy()  # if emojiId != '681244980593164336' else Image.open("BaseAwooga.png").copy()
+    two1 = Image.open("Arm.png").copy()
+    for i in range(leng):
+        emoPng = images[i]
+        wRatio = emoPng.width / emoPng.height
+        height = round(math.sqrt(4900 / wRatio))
+        width = round(wRatio * height)
+        one1.alpha_composite(emoPng.resize((width, height), Image.LANCZOS).rotate(rot[i], Image.BICUBIC, expand=1), (X[i], Y[i]))
+    comp2 = Image.alpha_composite(one1, two1)
+    for i in range(leng2):
+        emoPng = images[i + (leng - 1)]
+        wRatio = emoPng.width / emoPng.height
+        height = round(math.sqrt(4900 / wRatio))
+        width = round(wRatio * height)
+        comp2.alpha_composite(emoPng.resize((width, height), Image.LANCZOS).rotate(rot2[i], Image.BICUBIC, expand=1), (X2[i], Y2[i]))
+    return comp2
+
+
+def processStaticRangeImage(*args):
+    emojiId = args[-1]
+    images = [*args[:-1]]
+    need = math.ceil(9 / len(images))
+    out = []
+    for i in range(need):
+        out.extend(jumble(images.copy()))
+    held = holdImage(out)
+    held.save(str(emojiId) + 'held.png')
+    return str(emojiId) + 'held.png'
+
+
+def shaking(inp, frame, intensity):
+    bits = 300
+    frequency = 4
+    frequency2 = 3
+    i = frame
+    emoPng = inp
+    canvas = Image.new('RGBA', (800, 800), (0, 0, 0, 0))
+    buffer = 20
+    height, width = emoPng.size
+    ratio = height / width
+    if width > bits:
+        image = emoPng.copy().resize((bits, round(bits * ratio)), Image.BICUBIC)
+    else:
+        image = emoPng.copy().resize((bits, round(bits * ratio)), Image.NEAREST)
+    # image = image.rotate(round(4 * math.sin(((2 * math.pi) / frequency) * (i - frequency))), Image.BICUBIC, expand=0)
+    canvas.alpha_composite(image, (buffer, buffer))
+    offsetX = round(math.sin(((2 * math.pi) / frequency2) * (i - frequency2))) * intensity
+    offsetY = round(math.sin(((2 * math.pi) / frequency) * (i - frequency))) * intensity
+    image2 = ImageChops.offset(canvas, offsetX, offsetY)
+    # offsetX = round(intensity * 0.6 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)))
+    # offsetY = round(intensity * 0.4 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)))
+    # image2 = ImageChops.offset(canvas, offsetX, offsetY)
+    croppedImage = image2.crop((0, 0, bits+buffer*2, round(bits * ratio)+buffer*2))
+    return croppedImage
+
+
+def processShookImage2(emoPng, intensity, emojiId):
+    emoPng.convert('RGBA')
+    images = []
+    frames = 24 - 1
+    frequency = 3
+    frequency2 = 6
+    for i in range(0, frames, 1):
+        out = shaking(emoPng.copy(), i, intensity)
+        alpha = out.split()[3]
+        out = out.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
+        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+        out.paste(255, mask)
+        images.append(out)
+    images[0].save(str(emojiId) + 'shook.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
+    return (str(emojiId) + 'shook.gif')
+
+
+def processShookGif2(emoGif, intensity, emojiId):
+    totalFrames = emoGif.n_frames
+    gifDuration = emoGif.info['duration']
+    images = []
+    frames = 24 - 1
+    frequency = 3
+    frequency2 = 6
+    frame_ratio = 20 / gifDuration
+    for i in range(0, frames, 1):
+        framePick = int(math.floor((i * frame_ratio) % totalFrames))
+        emoGif.seek(framePick)
+        img = emoGif.copy().convert('RGBA')
+        out = shaking(img, i, intensity)
+        alpha = out.split()[3]
+        out = out.convert('RGB').quantize(colors=255, method=Image.MAXCOVERAGE, dither=Image.NONE)
+        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+        out.paste(255, mask)
+        images.append(out)
+    images[0].save(str(emojiId) + 'shook.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
+    return (str(emojiId) + 'shook.gif')

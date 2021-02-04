@@ -1,8 +1,8 @@
 import math, datetime
 import colorsys
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFilter, ImageEnhance
 import requests, io
-
+import moviepy.editor as mp
 
 def rotateImg(emoImg, rot, emojiId):
     emoImg = emoImg.convert("RGBA").rotate(-rot, Image.BICUBIC, expand=1)
@@ -889,6 +889,7 @@ def maskingGif4(emoGif, n, emojiId):
                    disposal=2)
     return str(emojiId) + 'masking.gif'
 
+
 def lcdize(image, do, noise):
     image = image.convert('RGBA')
     pix = Image.open('pixels/6x6.png')
@@ -988,20 +989,21 @@ def lcdGif2(emoGif, emojiId):
     images = []
     for f in range(totalFrames):
         emoGif.seek(f)
-        img = lcdize(emoGif.copy().convert('RGBA'), True, 0).convert('P', palette=Image.ADAPTIVE, colors=255)
+        img = lcdize(emoGif.copy().convert('RGBA'), True, 0).convert('RGB').quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
         images.append(img)
-    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, transparency=255,
-                   disposal=2)
+    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, disposal=2)
     return str(emojiId) + 'lcd.gif'
+
 
 def lcdPng3(emoPng, noise, emojiId):
     images = []
     for i in range(10):
-        emoImg = lcdize(emoPng, True, noise).convert('P', palette=Image.ADAPTIVE, colors=255)
+        emoImg = lcdize(emoPng, True, noise).convert('RGB')
+        emoImg = emoImg.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
         images.append(emoImg)
-    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
+    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, disposal=2)
     return str(emojiId) + 'lcd.gif'
+
 
 def lcdGif3(emoGif, noise, emojiId):
     totalFrames = emoGif.n_frames
@@ -1009,8 +1011,65 @@ def lcdGif3(emoGif, noise, emojiId):
     images = []
     for f in range(totalFrames):
         emoGif.seek(f)
-        img = lcdize(emoGif.copy().convert('RGBA'), True, noise).convert('P', palette=Image.ADAPTIVE, colors=255)
+        img = lcdize(emoGif.copy().convert('RGBA'), True, noise).convert('RGB')
+        img = img.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
         images.append(img)
-    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, transparency=255,
-                   disposal=2)
+    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, disposal=2)
     return str(emojiId) + 'lcd.gif'
+
+
+def lcdPng4(emoPng, noise, emojiId):
+    images = []
+    for i in range(10):
+        emoImg = lcdize(emoPng, True, noise).convert('RGB').filter(ImageFilter.GaussianBlur(radius=1.2))
+        emoImg = ImageEnhance.Brightness(emoImg).enhance(2.2)
+        emoImg = ImageEnhance.Contrast(emoImg).enhance(1.4)
+        emoImg = emoImg.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
+        images.append(emoImg)
+    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, disposal=2)
+    return str(emojiId) + 'lcd.gif'
+
+
+def lcdGif4(emoGif, noise, emojiId):
+    totalFrames = emoGif.n_frames
+    gifDuration = emoGif.info['duration']
+    images = []
+    for f in range(totalFrames):
+        emoGif.seek(f)
+        img = lcdize(emoGif.copy().convert('RGBA'), True, noise).convert('RGB').filter(ImageFilter.GaussianBlur(radius=1.2))
+        img = ImageEnhance.Brightness(img).enhance(2.2)
+        img = ImageEnhance.Contrast(img).enhance(1.4)
+        img = img.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
+        images.append(img)
+    images[0].save(str(emojiId) + 'lcd.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, disposal=2)
+    return str(emojiId) + 'lcd.gif'
+
+
+def intoGif(*args):
+    emojiId = args[-1]
+    duration = args[-2]
+    imgs = args[:-2]
+    images = [*imgs]
+    images2 = []
+    for f in range(len(images) * duration):
+        frame = math.floor(f/duration)
+        print(f, frame, len(images))
+        img = images[frame]
+        alpha = img.split()[3]
+        img = img.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
+        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+        img.paste(255, mask)
+        images2.append(img)
+    gifDuration = 20 * duration
+    images[0].save(str(emojiId) + 'into.gif', save_all=True, append_images=images2[1:], duration=gifDuration, loop=0, optimize=False, transparency=255,
+                   disposal=2)
+    return str(emojiId) + 'into.gif'
+
+
+def intoMp4(inp, emojiId):
+    inp.save("input.gif", save_all=True)
+    clip = mp.VideoFileClip("input.gif")
+    # clip = clip.fx(mp.vfx.loop)
+    clip.write_videofile(str(emojiId) + "video.mp4")
+    return str(emojiId) + "video.mp4"
+

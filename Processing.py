@@ -3,7 +3,7 @@ from multiprocessing.connection import Client
 from multiprocessing.connection import Listener
 from PIL import Image
 from image_mods.DickMan import processManImage, processManGif
-from image_mods.intense import intensifytext
+from image_mods.intense import intensifytext, marqueetext
 from image_mods.italicize import italicizePng, italicizeGif
 from image_mods.jpegify import JpegImage, JpegGif
 from image_mods.jpegify2 import JpegGif2, JpegImage2
@@ -15,22 +15,22 @@ from image_mods.pptasty import process4headImage, process4headGif, processwormho
     processSnapGif2, \
     processSnapImage3, processSnapGif3, processSnapImage4, processSnapGif4
 from image_mods.shook import processMoreShookImage, processNukeImage, processCrazyShookImage, processShookImage, processGifImageT, processGifImageF, \
-    processStaticImage, \
-    processNukeGif, processShookGif, processMoreShookGif
+    processStaticImage, processNukeGif, processShookGif, processMoreShookGif, processStaticRangeImage, processShookImage2
 from image_mods.space import processSpaceGif, processSpaceImage
 from image_mods.speed import speedtext
 from image_mods.peeking import peekingImage, peekingGif, peekingImage2, peekingGif2
 from image_mods.simpleMod import rotateImg, rotateGif, flipImg, flipGif, hyperImg, hyperGif, information, information2, widen, widenGif, resize, resizeGif, \
-    crop, cropGif, \
-    thinking, thinkingGif, transparency, transparencyGif, save, saveGif, append, appendGif, getUrl, areyousure, justdoit, couch, manydoors, maskingPng, \
-    maskingGif, \
-    maskingPng2, maskingGif2, maskingOne, maskingTwo, maskingPng4, maskingGif4, lcdPng, lcdGif, lcdPng2, lcdGif2, lcdPng3, lcdGif3
+    crop, cropGif, thinking, thinkingGif, transparency, transparencyGif, save, saveGif, append, appendGif, getUrl, areyousure, justdoit, couch, manydoors,\
+    maskingPng, maskingGif, maskingPng2, maskingGif2, maskingOne, maskingTwo, maskingPng4, maskingGif4, lcdPng, lcdGif, lcdPng2, lcdGif2, lcdPng3, lcdGif3,\
+    lcdPng4, lcdGif4, intoGif, intoMp4
 from image_mods.textual import magicConch
 from image_mods.ThreeDrendering import rendering3d, rendering3d2, rendering3dSpot, rendering3dSpotGif, renderingShrink3d, renderingShrink3dGif, \
     rendering3dSpotvol, \
     rendering3dSpotCop
 from image_mods.wobbling import wobble, wobbleGif
 from image_mods.Atmograph import atmograph2
+from image_mods.crtfilter import cathodePng, cathodeGif, cathodePng2, cathodeGif2, paddingPng, paddingGif, crtdepth
+from image_mods.stereograph import stereo, stereoGif, stereo2, stereo3, stereo3gif
 # for the time being, I've deprecated deep dream... maybe later I'll re-implement
 # from image_mods.deepdream2 import *
 # from image_mods.deepdream import *
@@ -49,7 +49,10 @@ dict = {"intense": [intensifytext], "speed": [speedtext], "mocking": [mockingSpo
         "append": [append, appendGif], "snap4": [processSnapImage4, processSnapGif4], "atmograph": [atmograph2], "geturl": [getUrl],
         "areyousure": [areyousure], "justdoit": [justdoit], "couch": [couch], "manydoors": [manydoors], "mask": [maskingPng, maskingGif],
         "mask2": [maskingPng2, maskingGif2], "mask3": [maskingOne, maskingOne], "overlaying": [maskingTwo, maskingTwo], "mask4": [maskingPng4, maskingGif4],
-        "lcd": [lcdPng, lcdGif], "lcd2": [lcdPng2, lcdGif2], "lcd3": [lcdPng3, lcdGif3]}
+        "lcd": [lcdPng, lcdGif], "lcd2": [lcdPng2, lcdGif2], "lcd3": [lcdPng3, lcdGif3], "marquee": [marqueetext], "held3": [processStaticRangeImage],
+        "lcd4": [lcdPng4, lcdGif4], "crt": [cathodePng, cathodeGif], "crt2": [cathodePng2, cathodeGif2], "pad": [paddingPng, paddingGif], "test": [intoGif],
+        "mp4": [intoMp4], "stereo": [stereo, stereoGif], "stereo2": [stereo2], "stereo3": [stereo3, stereo3gif], "crtd": [crtdepth],
+        "shake2": [processShookImage2]}
 
 
 def grabImage(urll):  # if you direct link to a png/gif/etc, it will directly return it as a bytestream of the image
@@ -86,30 +89,61 @@ def listening():  # constantly listens for an input on port 4001, then adds the 
         time.sleep(0.1)
 
 
-def findList(inp):  # basically just looks backwards for a ']' and outputs the position of it in the input list as a negative number
-    for i in range(len(inp)):
-        if inp[-i] == ']':
-            return -i
+# def findList(inp):  # basically just looks backwards for a ']' and outputs the position of it in the input list as a negative number
+#     for i in range(len(inp)):
+#         if inp[-i] == ']':
+#             return -i
+#     return 0  # 0 is just a good value for 'it didn't find anything'... although I suppose this should maybe output an error
+#
+#
+# def listify(inp):  # takes the sterilized string and converts into nested lists
+#     odict = []  # this is for output, hence odict... although I suppose it's a list not a dict now
+#     for i in range(len(inp)):
+#         if inp[i] == '[':
+#             sep = findList(inp)
+#             if sep != 0 and sep != -1:  # there's probably an edge case here, but haven't found it yet
+#                 odict = [*inp[:i], listify(inp[i + 1:sep]), *inp[sep + 1:]]
+#             else:
+#                 odict = [*inp[:i], listify(inp[i + 1:sep])]
+#             if type(odict[0]) is list:
+#                 odict[0] = ' '.join(odict[0])
+#             return odict
+#         else:
+#             if i == (len(inp) - 1):
+#                 return inp
+#             else:
+#                 sep = findList(inp)
+
+
+def findList(start, inp):
+    m = -1  # first character is [ so it'll immediately add?
+    for i in range(start, len(inp)):
+        if inp[i] == '[':
+            m = m + 1
+        if inp[i] == ']' and m == 0:
+            return i
+        if inp[i] == ']':
+            m = m - 1
     return 0  # 0 is just a good value for 'it didn't find anything'... although I suppose this should maybe output an error
 
 
 def listify(inp):  # takes the sterilized string and converts into nested lists
     odict = []  # this is for output, hence odict... although I suppose it's a list not a dict now
+    next = 0
     for i in range(len(inp)):
-        if inp[i] == '[':
-            sep = findList(inp)
-            if sep != 0 and sep != -1:  # there's probably an edge case here, but haven't found it yet
-                odict = [*inp[:i], listify(inp[i + 1:sep]), *inp[sep + 1:]]
+        if i >= next: # I guess just leave this here to prevent repeat appends
+            if inp[i] == '[':
+                # take and listify all between the corresponding [ and ] and make next equal to ] + 1
+                sep = findList(i, inp)
+                print(sep, inp[i+1:sep])
+                odict.append(listify(inp[i+1:sep]))
+                next = sep
+                pass
             else:
-                odict = [*inp[:i], listify(inp[i + 1:sep])]
-            if type(odict[0]) is list:
-                odict[0] = ' '.join(odict[0])
-            return odict
-        else:
-            if i == (len(inp) - 1):
-                return inp
-            else:
-                sep = findList(inp)
+                if inp[i] != ']':
+                    odict.append(inp[i])
+                pass
+    return odict
 
 
 def sterilize(inp2):
@@ -183,7 +217,10 @@ def correctTypes(inp):  # brute force try to change to int/float
             try:
                 olist.append(float(i))
             except:
-                olist.append(i)
+                if type(i) is list:
+                    olist.append(' '.join(i))
+                else:
+                    olist.append(i)
                 pass
     return olist
 
@@ -196,10 +233,13 @@ def imageProcessing(inp):  # here we take the nested processing list and start c
             if type(inp[i + 1]) is list:
                 args = correctTypes(formatting(imageProcessing(inp[i + 1])))  # makes the next lines a cleaner read
                 if type(args[0]) is PIL.GifImagePlugin.GifImageFile:  # probably a legacy feature? makes more sense to have this branch internal in the future
-                    inp[i + 1] = dict[cmd][1](*args, str(random.randint(10000, 999999)))
+                    print("running with the args:", (*args, str(random.randint(10000, 999999))))
+                    inp[i + 1] = dict[cmd][-1](*args, str(random.randint(10000, 999999)))
                 else:
+                    print("running with the args:", (*args, str(random.randint(10000, 999999))))
                     inp[i + 1] = dict[cmd][0](*args, str(random.randint(10000, 999999)))
             else:  # if the value immediately following a command isn't a list, we assume the command only takes 1 input...
+                print("running with the args:", (*formatting(inp[i + 1]), str(random.randint(10000, 999999))))
                 inp[i + 1] = dict[cmd][0](*formatting(inp[i + 1]), str(random.randint(10000, 999999)))
         else:
             olist.append(inp[i])
@@ -207,7 +247,10 @@ def imageProcessing(inp):  # here we take the nested processing list and start c
 
 
 def processing(inp):
-    testy = listify(sterilize(str(inp['userinput'])))
+    sterily = sterilize(str(inp['userinput']))
+    print("sterilized:", sterily)
+    testy = listify(sterily)
+    print("listified:", testy)
     try:
         inp['output'] = imageProcessing(testy.copy())[0]
         print('output was:', inp['output'])
