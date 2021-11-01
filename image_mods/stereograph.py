@@ -30,7 +30,7 @@ def clamp2(inp, low, high):
 
 
 def stereo(inp, depth=3):
-    emojiId = random.randint(0,99999)
+    emojiId = str(random.randint(0,99999))
     inp = inp.convert('RGB')
     inp.save(emojiId+'st.png')
     filename = emojiId+'st.png'
@@ -112,7 +112,7 @@ def stereo(inp, depth=3):
 
 
 def stereo2(inp):
-    emojiId = random.randint(0,99999)
+    emojiId = str(random.randint(0,99999))
     inp = inp.convert('RGB')
     inp.save(emojiId+'st.png')
     filename = emojiId+'st.png'
@@ -236,7 +236,7 @@ def framing(inp, depth, emojiId, midas, device, transform):
 
 
 def stereoGif(inp, depth=3):
-    emojiId = random.randint(0,99999)
+    emojiId = str(random.randint(0,99999))
     midas = torch.hub.load("intel-isl/MiDaS", "MiDaS")
     device = torch.device("cpu")
     midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
