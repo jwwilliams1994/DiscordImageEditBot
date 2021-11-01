@@ -1,6 +1,6 @@
 from PIL import Image
 import numpy as np
-import cv2, os, math
+import cv2, os, math, random
 import torch
 import urllib.request
 
@@ -29,7 +29,8 @@ def clamp2(inp, low, high):
     return out
 
 
-def stereo(inp, depth, emojiId):
+def stereo(inp, depth=3):
+    emojiId = random.randint(0,99999)
     inp = inp.convert('RGB')
     inp.save(emojiId+'st.png')
     filename = emojiId+'st.png'
@@ -107,11 +108,11 @@ def stereo(inp, depth, emojiId):
                 cl[x2, y] = cl[clamp(x2 - 2, width, width * 2 - 1), y]
     print('saving?')
     os.remove('depth'+filename)
-    canvas.save(str(emojiId) + 'stereo.png')
-    return str(emojiId) + 'stereo.png'
+    return canvas
 
 
-def stereo2(inp, emojiId):
+def stereo2(inp):
+    emojiId = random.randint(0,99999)
     inp = inp.convert('RGB')
     inp.save(emojiId+'st.png')
     filename = emojiId+'st.png'
@@ -147,7 +148,9 @@ def stereo2(inp, emojiId):
 
     output = prediction.cpu().numpy()
     plt.imsave(str(emojiId) + "stereo.png", output)
-    return str(emojiId) + 'stereo.png'
+    img = Image.open(str(emojiId) + "stereo.png")
+    os.remove(str(emojiId) + "stereo.png")
+    return img
 
 
 def framing(inp, depth, emojiId, midas, device, transform):
@@ -232,7 +235,8 @@ def framing(inp, depth, emojiId, midas, device, transform):
     return canvas
 
 
-def stereoGif(inp, depth, emojiId):
+def stereoGif(inp, depth=3):
+    emojiId = random.randint(0,99999)
     midas = torch.hub.load("intel-isl/MiDaS", "MiDaS")
     device = torch.device("cpu")
     midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
@@ -241,15 +245,14 @@ def stereoGif(inp, depth, emojiId):
     gifDuration = inp.info['duration']
     images = []
     for f in range(totalFrames):
-        inp.seek(f)
-        frame = framing(inp.copy().convert('RGB'), depth, emojiId, midas, device, transform).convert('RGB').quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
+        frame = framing(inp[f].copy().convert('RGB'), depth, emojiId, midas, device, transform).convert('RGB')#.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
         images.append(frame)
     os.remove('depth' + str(emojiId) + 'st.png')
-    images[0].save(str(emojiId) + 'stereo.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, disposal=2)
-    return str(emojiId) + 'stereo.gif'
+    images.append(gifDuration)
+    return images
 
 
-def stereo3(inp, inp2, depth, emojiId):
+def stereo3(inp, inp2, depth):
     image = inp2.convert('HSV')
     image2 = inp.convert('RGBA')
     il2 = image2.load()
@@ -287,13 +290,12 @@ def stereo3(inp, inp2, depth, emojiId):
             x2 = width * 2 - x - 1
             if cl[x2, y][-1] == 0:
                 cl[x2, y] = cl[clamp(x2 - 2, width, width * 2 - 1), y]
-    canvas.save(str(emojiId) + 'stereo.png')
-    return str(emojiId) + 'stereo.png'
+    return canvas
 
 
-def stereo3gif(inp, inp2, depth, emojiId):
-    totalFrames = inp.n_frames
-    gifDuration = inp.info['duration']
+def stereo3gif(inp, inp2, depth=3):
+    totalFrames = len(inp) - 1
+    gifDuration = inp[-1]
     images = []
     image = inp2.convert('HSV')
     il = image.load()
@@ -338,5 +340,5 @@ def stereo3gif(inp, inp2, depth, emojiId):
                         cl[x2, y] = cl[clamp(x2 - 1, width, width * 2 - 1), y]
         canvas = canvas.convert('RGB').quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
         images.append(canvas)
-    images[0].save(str(emojiId) + 'stereo.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, disposal=2)
-    return str(emojiId) + 'stereo.gif'
+    images.append(gifDuration)
+    return images

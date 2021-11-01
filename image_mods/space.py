@@ -2,7 +2,7 @@ from PIL import Image, ImageFilter, GifImagePlugin, ImageSequence, ImageChops, I
 import os, glob, time, asyncio
 import math, random
 
-def processSpaceImage(emoPng,emojiId):
+def processSpaceImage(emoPng):
     images = []
     frames = 960-1
     img2 = Image.open('canvas.png').copy()
@@ -64,15 +64,12 @@ def processSpaceImage(emoPng,emojiId):
         image2 = ImageChops.offset(canvas,offsetX,offsetY)
         croppedImage = image2.crop((160,160,240,240))
         ##croppedImage = image2.crop((0,0,400,400))
-        alpha = croppedImage.split()[3]
-        croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <=128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(str(emojiId)+'space.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return (str(emojiId)+'space.gif')
+    images.append(20)
+    return images
 
-def processSpaceGif(emoGif,emojiId):
+
+def processSpaceGif(emoGif):
     images = []
     frames = 960-1
     img2 = Image.open('canvas.png')
@@ -81,8 +78,10 @@ def processSpaceGif(emoGif,emojiId):
     xStart = []
     yStart = []
     dist = 100
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     if gifDuration < 20:
         gifDuration = 100
     frame_ratio = 20/gifDuration
@@ -99,8 +98,7 @@ def processSpaceGif(emoGif,emojiId):
         #print(i)
         #print(frame_ratio)
         framePick = int(math.floor((i*frame_ratio)%totalFrames))
-        emoGif.seek(framePick)
-        emoPng = emoGif.copy().convert('RGBA')
+        emoPng = emoGif[framePick].copy().convert('RGBA')
         if i == (interval):
             #print('stage1')
             stage = 1
@@ -153,11 +151,7 @@ def processSpaceGif(emoGif,emojiId):
         image2 = canvas
         croppedImage = image2.crop((160,160,240,240))
         ##croppedImage = image2.crop((0,0,400,400))
-        alpha = croppedImage.split()[3]
-        croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <=128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(str(emojiId)+'space.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return str(emojiId) + 'space.gif'
+    images.append(20)
+    return images
 

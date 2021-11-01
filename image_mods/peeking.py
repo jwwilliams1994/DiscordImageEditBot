@@ -3,8 +3,7 @@ import math
 from PIL import Image
 
 stages = [100,200,300,400]
-def peekingImage(emoPng, emojiId):
-    print("starting")
+def peekingImage(emoPng):
     images = []
     emoPng = emoPng.convert("RGBA")
     width, height = emoPng.size
@@ -43,25 +42,23 @@ def peekingImage(emoPng, emojiId):
             yr = 0
         canvas.alpha_composite(img, (0, yr))
         canvas = canvas.crop((0, 0, width, height))
-        alpha = canvas.split()[3]
-        canvas = canvas.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas.paste(255, mask)
         images.append(canvas)
-    images[0].save(str(emojiId) + 'peek.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return (str(emojiId) + 'peek.gif')
+    images.append(20)
+    return images
 
-def peekingGif(emoGif, emojiId):
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+
+def peekingGif(emoGif):
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     if gifDuration < 20:
         gifDuration = 20
     frame_ratio = 20 / gifDuration
     print("starting")
     images = []
     # emoPng = emoPng.convert("RGBA")
-    width, height = emoGif.size
+    width, height = emoGif[0].size
     wRatio = width / height
     width = round(wRatio * 100)
     height = 100
@@ -73,8 +70,7 @@ def peekingGif(emoGif, emojiId):
     stage = 0
     for f in range(0,400):
         framePick = int(math.floor((f * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        emoPng = emoGif.copy().convert("RGBA").resize((width, height), Image.LANCZOS)
+        emoPng = emoGif[framePick].copy().convert("RGBA").resize((width, height), Image.LANCZOS)
         if f > stages[stage]:
             stage += 1
         if stage > 3:
@@ -100,16 +96,12 @@ def peekingGif(emoGif, emojiId):
             yr = 0
         canvas.alpha_composite(img, (0, yr))
         canvas = canvas.crop((0, 0, width, height))
-        alpha = canvas.split()[3]
-        canvas = canvas.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas.paste(255, mask)
         images.append(canvas)
-    images[0].save(str(emojiId) + 'peek.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return (str(emojiId) + 'peek.gif')
+    images.append(20)
+    return images
 
-def peekingImage2(emoPng, intensity, emojiId):
+
+def peekingImage2(emoPng, intensity):
     print("starting")
     images = []
     emoPng = emoPng.convert("RGBA")
@@ -149,18 +141,16 @@ def peekingImage2(emoPng, intensity, emojiId):
             yr = 0
         canvas.alpha_composite(img, (0, yr))
         canvas = canvas.crop((0, 0, width, height))
-        alpha = canvas.split()[3]
-        canvas = canvas.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas.paste(255, mask)
         images.append(canvas)
-    images[0].save(str(emojiId) + 'peek.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return (str(emojiId) + 'peek.gif')
+    images.append(20)
+    return images
 
-def peekingGif2(emoGif, intensity, emojiId):
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+
+def peekingGif2(emoGif, intensity):
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     if gifDuration < 20:
         gifDuration = 20
     frame_ratio = 20 / gifDuration
@@ -179,8 +169,7 @@ def peekingGif2(emoGif, intensity, emojiId):
     stage = 0
     for f in range(0,200):
         framePick = int(math.floor((f * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        emoPng = emoGif.copy().convert("RGBA").resize((width, height), Image.LANCZOS)
+        emoPng = emoGif[framePick].copy().convert("RGBA").resize((width, height), Image.LANCZOS)
         if f > stages[stage]:
             stage += 1
         if stage > 3:
@@ -206,11 +195,6 @@ def peekingGif2(emoGif, intensity, emojiId):
             yr = 0
         canvas.alpha_composite(img, (0, yr))
         canvas = canvas.crop((0, 0, width, height))
-        alpha = canvas.split()[3]
-        canvas = canvas.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas.paste(255, mask)
         images.append(canvas)
-    images[0].save(str(emojiId) + 'peek.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return (str(emojiId) + 'peek.gif')
+    images.append(20)
+    return images

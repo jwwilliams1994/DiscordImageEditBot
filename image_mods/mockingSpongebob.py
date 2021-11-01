@@ -3,7 +3,8 @@ import os, glob, time, asyncio
 import math, random
 #54,259
 
-def mockingSpongebob(inputText, emojiId):
+
+def mockingSpongebob(inputText):
     marker = 0
     for i in range(len(inputText)):
         if random.randint(1,100) > 40:
@@ -41,7 +42,6 @@ def mockingSpongebob(inputText, emojiId):
         yoffset = 0
     background.alpha_composite(canvas,(xoffset,yoffset+300))
     #background.alpha_composite(canvas,(54,259))
-    background.save(emojiId+'mocking.png')
-    return (emojiId+'mocking.png')
+    return background
 
 #mockingSpongebob("this is a test this is a test this is a test this is a test this is a test",1235)

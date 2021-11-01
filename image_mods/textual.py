@@ -2,7 +2,7 @@ import random
 import time
 import datetime
 
-def magicConch(placeholder, randId):
+def magicConch():
     print("tried")
     conchAnswers = ['As I see it, yes.', 'Ask again later.', 'Better not tell you now.', 'Cannot predict now.', 'Concentrate and ask again.',
                     'Don\'t count on it.', 'It is certain.', 'It is decidedly so.', 'Most likely.', 'My reply is no.', 'My sources say no.',
@@ -12,7 +12,7 @@ def magicConch(placeholder, randId):
     response = conchAnswers[answer]
     return response
 
-def cyberpunk(placeholder, randId):
+def cyberpunk():
     now = datetime.datetime.now()
     release_date = "2020-12-10 00:00:00.0"
     release_obj = datetime.datetime.strptime(release_date, '%Y-%m-%d %H:%M:%S.%f')

@@ -10,7 +10,7 @@ from image_mods.jpegify2 import JpegGif2, JpegImage2
 from image_mods.jpegify3 import JpegGif3, JpegImage3
 from image_mods.mockingSpongebob import mockingSpongebob
 from image_mods.monkaShoot import processShootImage
-from image_mods.notbttv import notBttv, notBttvDef, notBttvImg
+from image_mods.notbttv import notBttv, notBttvDef, notBttvImg, hazmatPng, hazmatGif
 from image_mods.pptasty import process4headImage, process4headGif, processwormholeImage, processwormholeGif, processSnapImage, processSnapImage2, \
     processSnapGif2, \
     processSnapImage3, processSnapGif3, processSnapImage4, processSnapGif4
@@ -22,15 +22,22 @@ from image_mods.peeking import peekingImage, peekingGif, peekingImage2, peekingG
 from image_mods.simpleMod import rotateImg, rotateGif, flipImg, flipGif, hyperImg, hyperGif, information, information2, widen, widenGif, resize, resizeGif, \
     crop, cropGif, thinking, thinkingGif, transparency, transparencyGif, save, saveGif, append, appendGif, getUrl, areyousure, justdoit, couch, manydoors,\
     maskingPng, maskingGif, maskingPng2, maskingGif2, maskingOne, maskingTwo, maskingPng4, maskingGif4, lcdPng, lcdGif, lcdPng2, lcdGif2, lcdPng3, lcdGif3,\
-    lcdPng4, lcdGif4, intoGif, intoMp4
+    lcdPng4, lcdGif4, intoGif, intoMp4, getMp4asGif, emboss, embossGif, aggressivePng, border, borderGif, border2, borderGif2, enchant, halve,\
+    upscalePng, upscaleGif, downscalePng, downscaleGif, palettePng, paletteGif, palettePng2, paletteGif2, stitchwPng, stitchwGif, stitchhPng, stitchhGif, fixGif, \
+    brightnessImg, brightnessGif, contrastImg, contrastGif, gaussImg, gaussGif, saturationImg, saturationGif, palettePng3, paletteGif3, diffractPng, diffractGif, \
+    diffractAni, glitchPng, glitchGif, giffify, jitterPng, jitterGif, invertPng, invertGif, warpPng, warpGif, spinPng, pumpPng, pumpGif, pump2Png, pump2Gif
 from image_mods.textual import magicConch
 from image_mods.ThreeDrendering import rendering3d, rendering3d2, rendering3dSpot, rendering3dSpotGif, renderingShrink3d, renderingShrink3dGif, \
     rendering3dSpotvol, \
-    rendering3dSpotCop
+    rendering3dSpotCop, renderingDice
 from image_mods.wobbling import wobble, wobbleGif
-from image_mods.Atmograph import atmograph2
-from image_mods.crtfilter import cathodePng, cathodeGif, cathodePng2, cathodeGif2, paddingPng, paddingGif, crtdepth
+# from image_mods.Atmograph import atmograph2
+from image_mods.crtfilter import cathodePng, cathodeGif, cathodePng2, cathodeGif2, paddingPng, paddingGif, crtdepth, cathodePng3, cathodeGif3, cathodePng4, cathodeGif4, \
+    ntscPng, ntscGif
 from image_mods.stereograph import stereo, stereoGif, stereo2, stereo3, stereo3gif
+from image_mods.drawCalendar import make_calendar, add_event, get_events, remove_events
+from image_mods.HereLies import herelay, imagine
+# from image_mods.stocks import graph_crypto
 # for the time being, I've deprecated deep dream... maybe later I'll re-implement
 # from image_mods.deepdream2 import *
 # from image_mods.deepdream import *
@@ -52,7 +59,14 @@ dict = {"intense": [intensifytext], "speed": [speedtext], "mocking": [mockingSpo
         "lcd": [lcdPng, lcdGif], "lcd2": [lcdPng2, lcdGif2], "lcd3": [lcdPng3, lcdGif3], "marquee": [marqueetext], "held3": [processStaticRangeImage],
         "lcd4": [lcdPng4, lcdGif4], "crt": [cathodePng, cathodeGif], "crt2": [cathodePng2, cathodeGif2], "pad": [paddingPng, paddingGif], "test": [intoGif],
         "mp4": [intoMp4], "stereo": [stereo, stereoGif], "stereo2": [stereo2], "stereo3": [stereo3, stereo3gif], "crtd": [crtdepth],
-        "shake2": [processShookImage2]}
+        "shake2": [processShookImage2], "getMp4": [getMp4asGif], "crt3": [cathodePng3, cathodeGif3], "emboss": [emboss, embossGif], "aggressive": [aggressivePng],
+        "border": [border, borderGif], "border2": [border2, borderGif2], "enchant": [enchant], "halve": [halve], "upscale": [upscalePng, upscaleGif],
+        "downscale": [downscalePng, downscaleGif], "palette": [palettePng, paletteGif], "palette2": [palettePng2, paletteGif2], "stitchw": [stitchwPng, stitchwGif],
+        "stitchh": [stitchhPng, stitchhGif], "fix": [fixGif], "brightness": [brightnessImg, brightnessGif], "contrast": [contrastImg, contrastGif],
+        "blur": [gaussImg, gaussGif], "roll": [renderingDice], "saturation": [saturationImg, saturationGif], "palette3": [palettePng3, paletteGif3], "rip": [herelay],
+        "diffract": [diffractPng, diffractGif], "diffract2": [diffractAni], "glitch": [glitchPng, glitchGif], "gifify": [giffify], "hazmat": [hazmatPng, hazmatGif],
+        "crypto": [graph_crypto], "jitter": [jitterPng, jitterGif], "invert": [invertPng, invertGif], "warp": [warpPng, warpGif], "crt4": [cathodePng4, cathodeGif4],
+        "ntsc": [ntscPng, ntscGif], "spin": [spinPng], "pumpkin2": [pumpPng, pumpGif], "pumpkin": [pump2Png, pump2Gif], "imagine": [imagine]}
 
 
 def grabImage(urll):  # if you direct link to a png/gif/etc, it will directly return it as a bytestream of the image
@@ -166,6 +180,20 @@ def is_file(inp):  # because os.path.isfile throws an annoying exception if the 
         return False
 
 
+def pil_to_list(inp):
+    total_frames = inp.n_frames
+    im_arr = []
+    dur_arr = []
+    for f in range(total_frames):
+        inp.seek(f)
+        dur_arr.append(inp.info['duration'])
+        im_arr.append(inp.copy())
+    #     for d in range(0, dur_arr[-1], 20):  # this 'fix' is here until we change functions to work with and accept duration arrays...
+    #         im_arr.append(inp.copy())
+    im_arr.append(dur_arr)  # for now, the last value in the array will be an int that represents the duration
+    return im_arr  # when we're ready, we'll use a list for durations instead of int in the last spot
+
+
 def formatting(inp):
     # this goes over the input list and checks the string entries to see if they might correspond to a file or something, and replaces accordingly
     if type(inp) is not list and type(inp) is not str:  # I'm not sure this'll be an issue, but just in case...
@@ -192,7 +220,10 @@ def formatting(inp):
                     if inp[i][0:5].isdigit():  # with the save command, you'll occasionally see images that are meant to burn after use
                         os.remove(inp[i])  # I make a global assumption that any image with at least 5 digits leading in the name is meant to be temporary
                     inp[i] = image
+                if type(inp[i]) is PIL.GifImagePlugin.GifImageFile:
+                    inp[i] = pil_to_list(inp[i])
             except Exception as e:
+                print("failure happened in formatting stage...")
                 print(e)
                 return e
                 pass
@@ -217,7 +248,7 @@ def correctTypes(inp):  # brute force try to change to int/float
             try:
                 olist.append(float(i))
             except:
-                if type(i) is list:
+                if type(i) is list and type(i[0]) is not PIL.Image.Image:
                     olist.append(' '.join(i))
                 else:
                     olist.append(i)
@@ -228,31 +259,86 @@ def correctTypes(inp):  # brute force try to change to int/float
 def imageProcessing(inp):  # here we take the nested processing list and start chunking out images
     olist = []
     for i in range(len(inp)):  # maybe wait until we reach the end to try running it as a command? lets us run logic first...
-        if str(inp[i]) in dict:
+        if str(inp[i]) in dict:  # this if/else branch means that the outlist excludes commands, but includes their results...
             cmd = inp[i]
+            args = []
             if type(inp[i + 1]) is list:
-                args = correctTypes(formatting(imageProcessing(inp[i + 1])))  # makes the next lines a cleaner read
-                if type(args[0]) is PIL.GifImagePlugin.GifImageFile:  # probably a legacy feature? makes more sense to have this branch internal in the future
-                    print("running with the args:", (*args, str(random.randint(10000, 999999))))
-                    inp[i + 1] = dict[cmd][-1](*args, str(random.randint(10000, 999999)))
-                else:
-                    print("running with the args:", (*args, str(random.randint(10000, 999999))))
-                    inp[i + 1] = dict[cmd][0](*args, str(random.randint(10000, 999999)))
-            else:  # if the value immediately following a command isn't a list, we assume the command only takes 1 input...
-                print("running with the args:", (*formatting(inp[i + 1]), str(random.randint(10000, 999999))))
-                inp[i + 1] = dict[cmd][0](*formatting(inp[i + 1]), str(random.randint(10000, 999999)))
+                args = correctTypes(formatting(imageProcessing(inp[i + 1])))  # inp[i+1] is the the list or object that follows the command read
+                print("args:", args)
+                # so args[0] is the result of the above image processing/formatting that gets linked files and processes commands present
+            else:
+                args = correctTypes(formatting(inp[i + 1]))
+            if type(args[0]) is list and type(args[0][0]) is PIL.Image.Image: # probably a legacy feature? makes more sense to have this branch internal in the future
+                # if type(args[0]) is PIL.Image.Image:
+                #     print("gifbranch")
+                #     args[0] = pil_to_list(args[0])
+                # print("running with the args:", args)
+                # henceforth we're assuming that all functions return an image object/array and duration/duration_array
+                # presumably duration/duration_array doesn't need to be exposed to the user, at least not yet?
+                inp[i + 1] = dict[cmd][-1](*args)  # we're gonna assume that frame duration will either be a list or a single value...
+            else:
+                # print("running with the args:", args)
+                inp[i + 1] = dict[cmd][0](*args)
+            # else:  # if the value immediately following a command isn't a list, we assume the command only takes 1 input...
+            #     args = formatting(inp[i + 1])  # just remember that formatting() returns a list, even when fed a single value
+            #     if type(args[0]) is PIL.GifImagePlugin.GifImageFile or (type(args[0]) is list and type(args[0][0]) is PIL.Image.Image):
+            #         if type(args[0]) is PIL.GifImagePlugin.GifImageFile:
+            #             args[0], dur_arr = pil_to_list(args[0])
+            #         print("running with the args:", args)
+            #         inp[i + 1] = dict[cmd][-1](*args)  # I could theoretically use 1 instead of -1, but -1 doesn't break if the function only has 1 selector
+            #     else:
+            #         print("running with the args:", args)
+            #         inp[i + 1] = dict[cmd][0](*args)  # this replaces inp[i + 1] with the output of the func run
         else:
             olist.append(inp[i])
-    return olist
+    print("returning:", str(olist)[:20])
+    return olist  # this result essentially replaces the command and following arg(s)
+
+
+def save_gif(inp, rand_id, comp=1):
+    images = []
+    duration = inp[-1]
+    frames = len(inp) - 1
+    for f in range(0, frames):
+        frame = inp[f].copy().convert('RGBA')
+        alpha = frame.split()[3]
+        if comp == 0:
+            frame = frame.quantize(24, Image.FASTOCTREE, 0, Image.WEB)
+        if comp == 1:
+            frame = frame.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=254)
+        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+        frame.paste(255, mask)
+        images.append(frame)
+    images[0].save(str(rand_id) + '.gif', save_all=True, append_images=images[1:], duration=duration, loop=0, optimize=False, transparency=255, disposal=2)
+    stat = os.path.getsize(str(rand_id) + '.gif')
+    if stat > 8000000 and comp == 1:
+        save_gif(inp, rand_id, 0)
+    return str(rand_id) + '.gif'
 
 
 def processing(inp):
+    print("----------------")
     sterily = sterilize(str(inp['userinput']))
     print("sterilized:", sterily)
     testy = listify(sterily)
     print("listified:", testy)
     try:
-        inp['output'] = imageProcessing(testy.copy())[0]
+        test = imageProcessing(testy.copy())
+        print("whut", type(test))
+        raw_image_data = test[0]  # presumably this will either be an image object or an array of image objects, which will each need to be handled differently...
+        print("processing passed...", type(raw_image_data))
+        print(raw_image_data)
+        rand_id = str(random.randint(11111, 999999))
+        if type(raw_image_data) is PIL.Image.Image or type(raw_image_data) is PIL.JpegImagePlugin.JpegImageFile:
+            raw_image_data.save(rand_id + ".png")
+            file_string = rand_id + ".png"
+        else:
+            file_string = save_gif(raw_image_data, rand_id)
+        print("file string acquired")
+        # if it's an array of images, and that array is very long, we'll want to save it with a high degree of dither, like we do for the dice animations...
+        # or maybe we save, get the size, then if too large, compensate repeatedly until the result is either small enough or throw exception and fail?
+        # inp['output'] = imageProcessing(testy.copy())[0]
+        inp['output'] = file_string
         print('output was:', inp['output'])
     except Exception as e:
         inp['output'] = e

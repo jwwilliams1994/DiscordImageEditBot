@@ -5,7 +5,7 @@ from PIL import Image
 sizerat = 1.6
 
 # intens = -20
-def process4headImage(emoImg, intens, emojiId):
+def process4headImage(emoImg, intens=84):
     intens = -intens
     w1, h1 = emoImg.size
     rat = w1 / h1
@@ -66,21 +66,19 @@ def process4headImage(emoImg, intens, emojiId):
                 im2[x, y] = (r5, g5, b5, a5)
             else:
                 im2[x, y] = (0, 0, 0, 0)
-    canvas.save(str(emojiId) + "pp4head.png")
-    return str(emojiId) + "pp4head.png"
+    return canvas
 
 
-def process4headGif(emoGif, intens, emojiId):
+def process4headGif(emoGif, intens=84):
     images = []
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
     intens = -intens
-    w1, h1 = emoGif.size
+    w1, h1 = emoGif[0].size
     rat = w1 / h1
     for f in range(0, totalFrames, 1):
         # print(f,"of",totalFrames)
-        emoGif.seek(f)
-        emoImg = emoGif.copy()
+        emoImg = emoGif[f].copy()
         emoImg = emoImg.resize((round(100 * rat), 100), Image.LANCZOS).convert("RGBA")
         width, height = emoImg.size
         width2 = round(width * sizerat)
@@ -131,18 +129,12 @@ def process4headGif(emoGif, intens, emojiId):
                     # im2[x, y] = (255)
                 # if im2[x ,y] == (0):
                 #     im2[x, y] = (255)
-        alpha = canvas.split()[3]
-        canvas = canvas.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas.paste(255, mask)
-        canvas.convert("P")
         images.append(canvas)
-    images[0].save(str(emojiId) + 'pp4head.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "pp4head.gif"
+    images.append(gifDuration)
+    return images
 
 
-def processwormholeImage(emoImg, emojiId):
+def processwormholeImage(emoImg):
     images = []
     w1, h1 = emoImg.size
     rat = w1 / h1
@@ -188,23 +180,20 @@ def processwormholeImage(emoImg, emojiId):
                     # im2[x, y] = (r5, g5, b5, a5)
                 else:
                     im2[x, y] = (0, 0, 0, 0)
-        alpha = canvas.split()[3]
-        canvas = canvas.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas.paste(255, mask)
         images.append(canvas)
-    images[0].save(str(emojiId) + 'wormhole.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "wormhole.gif"
+    images.append(20)
+    return images
 
 
-def processwormholeGif(emoGif, emojiId):
+def processwormholeGif(emoGif):
     images = []
-    w1, h1 = emoGif.size
+    w1, h1 = emoGif[0].size
     rat = w1 / h1
     # emoImg = emoImg.convert("RGBA").copy().resize((round(100*rat),100),Image.LANCZOS)
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     if gifDuration < 20:
         gifDuration = 100
     frame_ratio = 20 / gifDuration
@@ -222,8 +211,7 @@ def processwormholeGif(emoGif, emojiId):
     canvas1 = Image.open("canvas.png").resize((width2, height2), Image.LANCZOS)
     for intens in range(80, -300, -1):
         framePick = int(math.floor((intens * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        emoImg = emoGif.copy().convert("RGBA").copy().resize((round(100 * rat), 100), Image.LANCZOS)
+        emoImg = emoGif[framePick].copy().convert("RGBA").copy().resize((round(100 * rat), 100), Image.LANCZOS)
         im1 = emoImg.load()
         canvas = canvas1.copy()
         im2 = canvas.load()
@@ -255,26 +243,23 @@ def processwormholeGif(emoGif, emojiId):
                     # im2[x, y] = (r5, g5, b5, a5)
                 else:
                     im2[x, y] = (0, 0, 0, 0)
-        alpha = canvas.split()[3]
-        canvas = canvas.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas.paste(255, mask)
         images.append(canvas)
-    images[0].save(str(emojiId) + 'wormhole2.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "wormhole2.gif"
+    images.append(20)
+    return images
 
-def processSnapImage(emoImg, emojiId):
+
+def processSnapImage(emoImg):
     images = []
     w1, h1 = emoImg.size
     rat = w1 / h1
-    emoImg = emoImg.convert("RGBA").copy().resize((round(100 * rat), 100), Image.LANCZOS)
+    emoImg = emoImg.convert("RGBA").copy()# .resize((round(100 * rat), 100), Image.LANCZOS)
     width, height = emoImg.size
     width2 = round(width)
     height2 = round(height)
     wedge = width2 - 1
     mod = 60
     im1 = emoImg.load()
+    dur_arr = []
     for intens in range(0, 650, 1):
         if intens > 50:
             mod = 40
@@ -288,7 +273,7 @@ def processSnapImage(emoImg, emojiId):
                 if intens < 50:
                     break
                 try:
-                    for i in range(0, 100):
+                    for i in range(0, width2):
                         if x-i < 0:
                             break
                         r, g, b, a = im1[x-i,i]
@@ -303,12 +288,12 @@ def processSnapImage(emoImg, emojiId):
                                 break
                 except:
                     pass
-            for y in range(1, 100):
+            for y in range(1, height2):
                 if intens < 50:
                     break
                 try:
-                    for i in range(0, 100):
-                        if y+i > 99:
+                    for i in range(0, height2):
+                        if y+i > (height2 - 1):
                             break
                         r, g, b, a = im1[wedge-i, y+i]
                         if a > 128:
@@ -329,18 +314,18 @@ def processSnapImage(emoImg, emojiId):
                 if a > 128:
                     breaking = False
                     break
-        canvas = emoImg
-        alpha = canvas.split()[3]
-        canvas2 = canvas.copy().convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas2.paste(255, mask)
-        images.append(canvas2)
+        images.append(emoImg.copy())
         if breaking:
             break
-    images[0].save(str(emojiId) + 'snap.gif', save_all=True, append_images=images[1:], duration=20, optimize=False, transparency=255, disposal=2)
-    return str(emojiId) + "snap.gif"
+    for i in images:
+        dur_arr.append(20)
+    dur_arr[-1] = 900
+    print(dur_arr[-1])
+    images.append(dur_arr)
+    return images
 
-def processSnapImage2(emoImg, emojiId):
+
+def processSnapImage2(emoImg):
     # apList= [[]*100 for i in range(100)]
     apList = []
     pList = []
@@ -440,27 +425,22 @@ def processSnapImage2(emoImg, emojiId):
                         # print(xp,yp,xg,yg)
                         # print(im2[xp,yp])
                         # print(im1[xg,yg])
-        if intens == 0:
-            canvas.save("0frame.png")
-        alpha = canvas.split()[3]
-        canvas2 = canvas.copy().convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas2.paste(255, mask)
-        images.append(canvas2)
+        images.append(canvas)
         if breaking:
             break
-    images[0].save(str(emojiId) + 'snap2.gif', save_all=True, append_images=images[1:], duration=20, optimize=False, transparency=255, disposal=2)
-    return str(emojiId) + "snap2.gif"
+    images.append(20)
+    return images
 
-def processSnapGif2(emoGif, emojiId):
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+
+def processSnapGif2(emoGif):
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
     if gifDuration < 20:
         gifDuration = 20
     frame_ratio = 20 / gifDuration
     pList = []
     images = []
-    w1, h1 = emoGif.size
+    w1, h1 = emoGif[0].size
     rat = w1 / h1
     width = round(100 * rat)
     height = 100
@@ -475,8 +455,7 @@ def processSnapGif2(emoGif, emojiId):
     can = Image.open("canvas.png").resize((width,height))
     for intens in range(0, 650, 1):
         framePick = int(math.floor((intens * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        emoImg = emoGif.copy().convert("RGBA").resize((width,height),Image.LANCZOS)
+        emoImg = emoGif[framePick].copy().convert("RGBA").resize((width,height),Image.LANCZOS)
         im1 = emoImg.load()
         canvas = can.copy()
         if intens > 50:
@@ -549,15 +528,18 @@ def processSnapGif2(emoGif, emojiId):
                         # print(xp,yp,xg,yg)
                         # print(im2[xp,yp])
                         # print(im1[xg,yg])
-        alpha = canvas.split()[3]
-        canvas2 = canvas.copy().convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas2.paste(255, mask)
-        images.append(canvas2)
-    images[0].save(str(emojiId) + 'snap2.gif', save_all=True, append_images=images[1:], duration=20, optimize=False, transparency=255, disposal=2)
-    return str(emojiId) + "snap2.gif"
+        images.append(canvas)
+    dur_arr = []
+    for i in range(0, len(images)):
+        if i < len(images):
+            dur_arr.append(20)
+        else:
+            dur_arr.append(500)
+    images.append(dur_arr)
+    return images
 
-def processSnapImage3(emoImg, testr, mod, mod2, emojiId):
+
+def processSnapImage3(emoImg, testr, mod, mod2):
     # apList= [[]*100 for i in range(100)]
     apList = []
     pList = []
@@ -671,25 +653,24 @@ def processSnapImage3(emoImg, testr, mod, mod2, emojiId):
                         # print(im1[xg,yg])
         if intens == 0:
             canvas.save("0frame.png")
-        alpha = canvas.split()[3]
-        canvas2 = canvas.copy().convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas2.paste(255, mask)
-        images.append(canvas2)
+        images.append(canvas)
         if breaking:
             break
-    images[0].save(str(emojiId) + 'snap2.gif', save_all=True, append_images=images[1:], duration=20, optimize=False, transparency=255, disposal=2)
-    return str(emojiId) + "snap2.gif"
+    images.append(20)
+    return images
 
-def processSnapGif3(emoGif, testr, mod, mod2, emojiId):
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+
+def processSnapGif3(emoGif, testr, mod, mod2):
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     if gifDuration < 20:
         gifDuration = 20
     frame_ratio = 20 / gifDuration
     pList = []
     images = []
-    w1, h1 = emoGif.size
+    w1, h1 = emoGif[0].size
     rat = w1 / h1
     width = round(100 * rat)
     height = 100
@@ -716,8 +697,7 @@ def processSnapGif3(emoGif, testr, mod, mod2, emojiId):
     can = Image.open("canvas.png").resize((width,height))
     for intens in range(0, 2600, 1):
         framePick = int(math.floor((intens * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        emoImg = emoGif.copy().convert("RGBA").resize((width,height),Image.LANCZOS)
+        emoImg = emoGif[framePick].copy().convert("RGBA").resize((width,height),Image.LANCZOS)
         im1 = emoImg.load()
         canvas = can.copy()
         # if intens > 50:
@@ -793,16 +773,14 @@ def processSnapGif3(emoGif, testr, mod, mod2, emojiId):
                         # print(im2[xp,yp])
                         # print(im1[xg,yg])
         alpha = canvas.split()[3]
-        canvas2 = canvas.copy().convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas2.paste(255, mask)
-        images.append(canvas2)
+        images.append(canvas)
         if breaking:
             break
-    images[0].save(str(emojiId) + 'snap2.gif', save_all=True, append_images=images[1:], duration=20, optimize=False, transparency=255, disposal=2)
-    return str(emojiId) + "snap2.gif"
+    images.append(20)
+    return images
 
-def processSnapImage4(emoImg, testr, mod, mod2, emojiId):
+
+def processSnapImage4(emoImg, testr, mod, mod2):
     # apList= [[]*100 for i in range(100)]
     apList = []
     pList = []
@@ -912,25 +890,24 @@ def processSnapImage4(emoImg, testr, mod, mod2, emojiId):
                         # print(im1[xg,yg])
         if intens == 0:
             canvas.save("0frame.png")
-        alpha = canvas.split()[3]
-        canvas2 = canvas.copy().convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas2.paste(255, mask)
-        images.append(canvas2)
+        images.append(canvas)
         if breaking:
             break
-    images[0].save(str(emojiId) + 'snap2.gif', save_all=True, append_images=images[1:], duration=20, optimize=False, transparency=255, disposal=2)
-    return str(emojiId) + "snap2.gif"
+    images.append(20)
+    return images
 
-def processSnapGif4(emoGif, testr, mod, mod2, emojiId):
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+
+def processSnapGif4(emoGif, testr, mod, mod2):
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     if gifDuration < 20:
         gifDuration = 20
     frame_ratio = 20 / gifDuration
     pList = []
     images = []
-    w1, h1 = emoGif.size
+    w1, h1 = emoGif[0].size
     rat = w1 / h1
     width = round(100 * rat)
     height = 100
@@ -957,8 +934,7 @@ def processSnapGif4(emoGif, testr, mod, mod2, emojiId):
     can = Image.open("canvas.png").resize((width,height))
     for intens in range(0, 2600, 1):
         framePick = int(math.floor((intens * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        emoImg = emoGif.copy().convert("RGBA").resize((width,height),Image.LANCZOS)
+        emoImg = emoGif[framePick].copy().convert("RGBA").resize((width,height),Image.LANCZOS)
         im1 = emoImg.load()
         canvas = can.copy()
         # if intens > 50:
@@ -1029,16 +1005,8 @@ def processSnapGif4(emoGif, testr, mod, mod2, emojiId):
                         # print(xp,yp,xg,yg)
                         # print(im2[xp,yp])
                         # print(im1[xg,yg])
-        alpha = canvas.split()[3]
-        canvas2 = canvas.copy().convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        canvas2.paste(255, mask)
-        images.append(canvas2)
+        images.append(canvas)
         if breaking:
             break
-    images[0].save(str(emojiId) + 'snap2.gif', save_all=True, append_images=images[1:], duration=20, optimize=False, transparency=255, disposal=2)
-    return str(emojiId) + "snap2.gif"
-
-if __name__ == '__main__':
-    testy = Image.open("testem.png")
-    print(processSnapImage2(testy, "98"))
+    images.append(20)
+    return images

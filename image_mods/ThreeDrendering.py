@@ -8,14 +8,21 @@ from direct.gui.OnscreenImage import OnscreenImage
 from panda3d.core import *
 from direct.filter.CommonFilters import CommonFilters
 from direct.particles.ParticleEffect import ParticleEffect
-from PIL import Image
+from PIL import Image, ImageChops
 import io, os, time, threading
+from panda3d.ode import OdeWorld, OdeSimpleSpace, OdeJointGroup
+from panda3d.ode import OdeBody, OdeMass, OdeBoxGeom, OdePlaneGeom, OdeTriMeshData, OdeTriMeshGeom
+from panda3d.core import BitMask32, CardMaker, Vec4, Quat
+from random import randint, random
+import random
+import math
 
 
 # myImage = OnscreenImage(image='testem.png', pos=(0, 0, 0))
 # loadPrcFileData("", "window-type offscreen" )
 
-def rendering3d(emoPng, yaw, pitch, roll, emojiId):
+def rendering3d(emoPng, yaw=1, pitch=0, roll=0):
+    emojiId = random.randint(0,99999)
     base = ShowBase(windowType='offscreen')
     base.camNode.get_display_region(0).set_active(False)
 
@@ -126,18 +133,15 @@ def rendering3d(emoPng, yaw, pitch, roll, emojiId):
                 peeking.fetchPixel(test, x, y)
                 r, g, b, a = round(test.getCell(0) * 255), round(test.getCell(1) * 255), round(test.getCell(2) * 255), round(test.getCell(3) * 255)
                 out[x, height - 1 - y] = (r, g, b, a)
-        alpha = img.split()[3]
-        img = img.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        img.paste(255, mask)
         images.append(img)
     os.remove(str(emojiId) + "texture.png")
-    images[0].save(str(emojiId) + 'ThreeD.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "ThreeD.gif"
+    images.append(20)
+    return images
 images = []
 
-def rendering3d2(emoGif, yaw, pitch, roll, emojiId):
+
+def rendering3d2(emoGif, yaw, pitch, roll):
+    emojiId = random.randint(0,99999)
     base = ShowBase(windowType='offscreen')
     base.camNode.get_display_region(0).set_active(False)
 
@@ -170,12 +174,13 @@ def rendering3d2(emoGif, yaw, pitch, roll, emojiId):
     dp = buffer.makeDisplayRegion()
     dp.setCamera(cam)
     testFrames = []
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     texList = []
     for i in range(totalFrames):
-        emoGif.seek(i)
-        emoPng = emoGif.copy().convert('RGBA')
+        emoPng = emoGif[i].copy().convert('RGBA')
         width, height = emoPng.size
         if width > height:
             bk = Image.new('RGBA', (width, width), (0, 0, 0, 0))
@@ -250,9 +255,8 @@ def rendering3d2(emoGif, yaw, pitch, roll, emojiId):
     while len(images) < maxf + 1 or images[-1] == '':
         print("waiting...")
         time.sleep(0.1)
-    images[0].save(str(emojiId) + 'ThreeD.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "ThreeD.gif"
+    images.append(20)
+    return images
 
 
 def sumColor(colorList):
@@ -273,7 +277,8 @@ def sumColor(colorList):
     return rCol
 
 
-def rendering3dSpot(emoPng, yaw, pitch, roll, ri, gi, bi, emojiId):
+def rendering3dSpot(emoPng, yaw, pitch, roll, ri, gi, bi):
+    emojiId = random.randint(0,99999)
     base = ShowBase(windowType='offscreen')
     base.camNode.get_display_region(0).set_active(False)
 
@@ -478,9 +483,8 @@ def rendering3dSpot(emoPng, yaw, pitch, roll, ri, gi, bi, emojiId):
         print("waiting...")
         time.sleep(0.1)
     os.remove(str(emojiId) + "texture.png")
-    images[0].save(str(emojiId) + 'ThreeD2.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "ThreeD2.gif"
+    images.append(20)
+    return images
 
 
 def renderFrame(width, height, peeks, f):
@@ -492,15 +496,16 @@ def renderFrame(width, height, peeks, f):
             peeks.fetchPixel(colors, x, y)
             r, g, b, a = round(colors.getCell(0) * 255), round(colors.getCell(1) * 255), round(colors.getCell(2) * 255), round(colors.getCell(3) * 255)
             out[x, height - 1 - y] = (r, g, b, a)
-    alpha = img.split()[3]
-    img = img.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-    mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-    img.paste(255, mask)
+    # alpha = img.split()[3]
+    # img = img.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
+    # mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+    # img.paste(255, mask)
     # print(f)
     images[f] = img
 
 
-def rendering3dSpotGif(emoGif, yaw, pitch, roll, ri, gi, bi, emojiId):
+def rendering3dSpotGif(emoGif, yaw, pitch, roll, ri, gi, bi):
+    emojiId = random.randint(0,99999)
     base = ShowBase(windowType='offscreen')
     base.camNode.get_display_region(0).set_active(False)
 
@@ -581,12 +586,13 @@ def rendering3dSpotGif(emoGif, yaw, pitch, roll, ri, gi, bi, emojiId):
     nodePath2.setTwoSided(False)
 
     testFrames = []
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     texList = []
     for i in range(totalFrames):
-        emoGif.seek(i)
-        emoPng = emoGif.copy().convert('RGBA')
+        emoPng = emoGif[i].copy().convert('RGBA')
         width, height = emoPng.size
         if width > height:
             bk = Image.new('RGBA', (width, width), (0, 0, 0, 0))
@@ -714,11 +720,12 @@ def rendering3dSpotGif(emoGif, yaw, pitch, roll, ri, gi, bi, emojiId):
     while len(images) < maxf + 1 or images[-1] == '':
         print("waiting...")
         time.sleep(0.1)
-    images[0].save(str(emojiId) + 'ThreeD.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "ThreeD.gif"
+    images.append(20)
+    return images
 
-def renderingShrink3d(emoPng, pace, iDist, emojiId):
+
+def renderingShrink3d(emoPng, pace, iDist):
+    emojiId = random.randint(0, 99999)
     base = ShowBase(windowType='offscreen')
     base.camNode.get_display_region(0).set_active(False)
 
@@ -831,11 +838,12 @@ def renderingShrink3d(emoPng, pace, iDist, emojiId):
         print("waiting...")
         time.sleep(0.2)
     os.remove(str(emojiId) + "texture.png")
-    images[0].save(str(emojiId) + 'Shrunk.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "Shrunk.gif"
+    images.append(20)
+    return images
 
-def renderingShrink3dGif(emoGif, pace, iDist, emojiId):
+
+def renderingShrink3dGif(emoGif, pace, iDist):
+    emojiId = random.randint(0,99999)
     base = ShowBase(windowType='offscreen')
     base.camNode.get_display_region(0).set_active(False)
 
@@ -868,12 +876,13 @@ def renderingShrink3dGif(emoGif, pace, iDist, emojiId):
     dp = buffer.makeDisplayRegion()
     dp.setCamera(cam)
     testFrames = []
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     texList = []
     for i in range(totalFrames):
-        emoGif.seek(i)
-        emoPng = emoGif.copy().convert('RGBA')
+        emoPng = emoGif[i].copy().convert('RGBA')
         width, height = emoPng.size
         if width > height:
             bk = Image.new('RGBA', (width, width), (0, 0, 0, 0))
@@ -944,9 +953,9 @@ def renderingShrink3dGif(emoGif, pace, iDist, emojiId):
         print("waiting...")
         time.sleep(0.2)
     # os.remove(str(emojiId) + "texture.png")
-    images[0].save(str(emojiId) + 'Shrunk.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "Shrunk.gif"
+    images.append(20)
+    return images
+
 
 def sumColor2(colorList):
     r = 0
@@ -964,6 +973,7 @@ def sumColor2(colorList):
     rCol = (r, g, b, a)
     # print(rCol)
     return rCol
+
 
 def rendering3dSpotvol(emoPng, pace, iDist, ri, gi, bi, emojiId):
     base = ShowBase(windowType='offscreen')
@@ -1157,11 +1167,12 @@ def rendering3dSpotvol(emoPng, pace, iDist, ri, gi, bi, emojiId):
         print("waiting...")
         time.sleep(0.1)
     os.remove(str(emojiId) + "texture.png")
-    images[0].save(str(emojiId) + 'Shrunk2.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "Shrunk2.gif"
+    images.append(20)
+    return images
 
-def rendering3dSpotCop(emoPng, max, emojiId):
+
+def rendering3dSpotCop(emoPng, max=40):
+    emojiId = random.randint(0,99999)
     base = ShowBase(windowType='offscreen')
     base.camNode.get_display_region(0).set_active(False)
 
@@ -1395,19 +1406,20 @@ def rendering3dSpotCop(emoPng, max, emojiId):
         print("waiting...")
         time.sleep(0.1)
     os.remove(str(emojiId) + "texture.png")
-    images[0].save(str(emojiId) + 'ThreeD2.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255,
-                   disposal=2)
-    return str(emojiId) + "ThreeD2.gif"
+    images.append(20)
+    return images
 
-def rendering3dSpotCopGif(emoGif, max, emojiId):
+
+def rendering3dSpotCopGif(emoGif, max):
+    emojiId = random.randint(0,99999)
     base = ShowBase(windowType='offscreen')
     base.camNode.get_display_region(0).set_active(False)
 
     props = FrameBufferProperties()
     # Request 8 RGB bits, no alpha bits, and a depth buffer.
-    props.set_rgba_bits(24, 24, 24, 24)
+    props.set_rgba_bits(8, 8, 8, 8)
     props.set_rgb_color(True)
-    props.set_depth_bits(24)
+    props.set_depth_bits(8)
     # props.set_stereo(True)
     win_prop = WindowProperties.size(300, 300)
     flags = GraphicsPipe.BFFbPropsOptional | GraphicsPipe.BF_refuse_window
@@ -1479,12 +1491,13 @@ def rendering3dSpotCopGif(emoGif, max, emojiId):
     nodePath2 = render.attachNewNode(node2)
     nodePath2.setTwoSided(False)
     testFrames = []
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     texList = []
     for i in range(totalFrames):
-        emoGif.seek(i)
-        emoPng = emoGif.copy().convert('RGBA')
+        emoPng = emoGif[i].copy().convert('RGBA')
         width, height = emoPng.size
         if width > height:
             bk = Image.new('RGBA', (width, width), (0, 0, 0, 0))
@@ -1653,5 +1666,299 @@ def rendering3dSpotCopGif(emoGif, max, emojiId):
                    disposal=2)
     return str(emojiId) + "ThreeD2.gif"
 
-# img = Image.open('testem2.png')
-# rendering3dSpotCop(img, 24, "88")
+
+from panda3d.bullet import BulletWorld
+from panda3d.bullet import BulletPlaneShape
+from panda3d.bullet import BulletRigidBodyNode
+from panda3d.bullet import BulletBoxShape, BulletTriangleMeshShape, BulletTriangleMesh, BulletDebugNode, BulletConvexHullShape
+from panda3d.core import *
+import colorsys
+
+# load_prc_file_data("", "load-display pandagl")
+load_prc_file_data("", "notify-level-egldisplay spam")
+# load_prc_file_data("", "gl-debug true")
+loadPrcFileData("", "audio-library-name null")
+
+
+def make_collision_from_model(input_model):
+    # tristrip generation from static models
+    # generic tri-strip collision generator begins
+    geom_nodes = input_model.findAllMatches('**/+GeomNode')
+    # print(len(geom_nodes))
+    output_bullet_mesh = BulletTriangleMesh()
+    # print(type(geom_nodes))
+    for i in range(len(geom_nodes)):
+        geom_nodes2 = geom_nodes.getPath(i).node()
+        if i == 0:
+            xoff, yoff, zoff = geom_nodes2.getTransform().getPos()
+        # print(geom_nodes2.getTransform().getPos())
+        geom_nodes2.clearTransform()
+        # test = TransformState.makePos((-xoff, -yoff, -xoff))
+        # geom_nodes2.transform = test
+        # geom_nodes2.clearBounds()
+        # geom_nodes2.getBounds()
+        geom_target = geom_nodes2.getGeom(0)
+        # print(geom_target)
+        output_bullet_mesh.addGeom(geom_target)
+    # tri_shape = BulletTriangleMeshShape(output_bullet_mesh, dynamic=False)
+    # print(output_bullet_mesh)
+    #
+    # body = BulletRigidBodyNode('input_model_tri_mesh')
+    # np = self.render.attachNewNode(body)
+    # np.node().addShape(tri_shape)
+    # np.node().setMass(0)
+    # np.node().setFriction(0.5)
+    # # np.setPos(0, 0, 0)
+    # np.setScale(1)
+    # np.setCollideMask(BitMask32.allOn())
+    # world.attachRigidBody(np.node())
+    return xoff, yoff, zoff, output_bullet_mesh
+
+import numpy, sys
+sys.path.append("..")
+print(sys.path)
+import example_cython
+
+
+def renderingDice(die="d20v2", forc=2):
+    celestial = False
+    if die.lower() == "celestial":
+        die = "d20vc2"
+        celestial = True
+    base = ShowBase(windowType='offscreen')
+    # base = ShowBase()
+    base.camNode.get_display_region(0).set_active(False)
+
+    props = FrameBufferProperties()
+    # Request 8 RGB bits, no alpha bits, and a depth buffer.
+    props.set_rgba_bits(8, 8, 8, 8)
+    props.set_rgb_color(True)
+    props.set_depth_bits(8)
+    # props.set_stereo(True)
+    win_prop = WindowProperties.size(120, 120)
+    flags = GraphicsPipe.BFFbPropsOptional | GraphicsPipe.BF_refuse_window
+
+    # buffer = base.graphicsEngine.make_output(base.pipe, "buffer", -100,
+    #                                          props,
+    #                                          win_prop, flags, base.win.getGsg(),
+    #                                          base.win)
+    buffer = base.graphicsEngine.make_output(base.pipe, "buffer", -100,
+                                             props,
+                                             win_prop, flags, base.win.getGsg(),
+                                             base.win)
+
+    texture = Texture()
+    buffer.addRenderTexture(texture, GraphicsOutput.RTM_copy_ram)
+
+    lens = PerspectiveLens()
+    lens.setNearFar(10, -10)
+    lens.setFov(7)
+    lens.setFocalLength(1.37795276)
+    lens.set_interocular_distance(50)
+    lens.set_convergence_distance(float('inf'))
+
+    render = NodePath('mono')
+    cam = base.makeCamera(buffer)
+    cam.node().setLens(lens)
+    cam.node().setScene(render)
+    dp = buffer.makeDisplayRegion()
+    dp.setCamera(cam)
+
+
+    # model = loader.loadModel('models/box.egg')
+    # model.flattenLight()
+    # model.reparentTo(np)
+
+    debugNode = BulletDebugNode('Debug')
+    debugNode.showWireframe(True)
+    debugNode.showConstraints(True)
+    debugNode.showBoundingBoxes(True)
+    debugNode.showNormals(False)
+    debugNP = render.attachNewNode(debugNode)
+    # debugNP.show()
+
+    world = BulletWorld()
+    world.setGravity(Vec3(0, 0, -9.81))
+    world.setDebugNode(debugNP.node())
+
+    shape = BulletPlaneShape(Vec3(0, 0, 1), 1) # ground
+    node = BulletRigidBodyNode('Ground')
+    node.addShape(shape)
+    node.setFriction(1.5)
+    np = render.attachNewNode(node)
+    np.setPos(0, 0, 0)
+    world.attachRigidBody(node)
+
+    if os.path.isfile("models/" + str(die) + ".x"):
+        pass
+    else:
+        raise Exception("Not an option.")
+    dice = loader.loadModel("models/" + str(die) + ".x") # complex model?
+    dice.reparentTo(render)
+    dice.setScale(1)
+    dice.setPos(0, 0, 0)
+    dice.setShaderAuto()
+    if os.path.isfile("models/" + str(die) + "_Normal.png"):
+        ts = TextureStage('ts')
+        ts.setMode(TextureStage.MHeight)
+        tex = loader.loadTexture("models/" + str(die) + "_Normal.png")
+        dice.setTexture(ts, tex)
+    # dice.setHpr(randint(-45, 45), randint(-45, 45), randint(-45, 45))
+
+    grnd = loader.loadModel("models/grounded5.x")  # complex model?
+    grnd.setScale(1)
+    grnd.lookAt(0, 0, -1)
+    grnd.setPos(0, 0, 1)
+    grnd.setScale(160)
+    grnd.reparentTo(render)
+    grnd.setDepthOffset(-1)
+    # geomnodes = dice.findAllMatches('**/+GeomNode')
+    # gn = geomnodes.getPath(0).node()
+    # geom = gn.getGeom(0)
+    # mesh = BulletTriangleMesh()
+    # mesh.addGeom(make_collision_from_model(dice))
+
+    xoff, yoff, zoff, mesh = make_collision_from_model(dice)
+    shape = BulletTriangleMeshShape(mesh, dynamic=True)
+    # shape = BulletConvexHullShape(mesh)
+    # dice.setPos(xoff, yoff, zoff)
+    node = BulletRigidBodyNode('Box')
+    # node.addShape(shape)
+    # shape = BulletBoxShape(Vec3(0.5, 0.5, 0.5))
+    node.addShape(shape)
+    node.setMass(0.1)
+    np = render.attachNewNode(node)
+    np.setPos(0, 0, 6)
+    np.setHpr(randint(-45, 45), randint(-45, 45), randint(-45, 45))
+    node.setFriction(1)
+    world.attachRigidBody(node)
+    dice.reparentTo(np)
+    dice.setDepthOffset(-1)
+
+    dlight = DirectionalLight('dlight')
+    dlight.setShadowCaster(True, 4096, 4096)
+    dlnp = render.attachNewNode(dlight)
+    dlnp.node().showFrustum()
+    dlnp.node().getLens().setFilmSize(128, 128)
+    dlnp.setPos(0, 0, 100)
+    dlnp.setHpr(0, -100, -30)
+    render.setLight(dlnp)
+
+    alight = AmbientLight('alight')
+    alight.setColor((0.25, 0.25, 0.25, 1))
+    alnp = render.attachNewNode(alight)
+    render.setLight(alnp)
+
+    # perPixelEnabled = True
+    render.setShaderAuto()
+
+    images = []
+    theta = random() * 2 * math.pi
+    yf = math.sin(theta) * 300
+    xf = math.cos(theta) * 300
+
+    nebula = Image.open("Shaper4K.png").convert('RGBA').resize((1024, 1024), Image.LANCZOS)
+    npn = numpy.asarray(Image.open("image_mods/Shaper1K.png").convert('RGBA')).tolist()
+    node.applyCentralImpulse((xf * 0.005 * forc, yf * 0.005 * forc, 0))
+    timd = 0
+    end = 1
+    if forc > 4:
+        ts = 0.03333 + (0.03333 / 2)
+        duration = 30
+    else:
+        ts = 0.03333
+        duration = 20
+    xp, yp, zp = 0, 0, 0
+    foff = randint(0, 3000)
+    for f in range(6000):
+        world.doPhysics(ts)
+        x, y, z = np.getPos()
+        vect = (x - xp, y - yp, z - zp)
+        # print(x, y)
+        xp, yp, zp = x, y, z
+        base.camera.setPos(x, y + 16, 20)
+        # grnd.setPos(x, y, 1)
+        dlnp.setPos(x, y, 100)
+        base.camera.lookAt(x, y, 1.2 + (z / 6))
+        base.graphicsEngine.renderFrame()
+        base.graphicsEngine.renderFrame()
+        peeking = texture.peek()
+        width, height = peeking.getXSize(), peeking.getYSize()
+        # img = Image.new('RGBA', (width, height), 0)
+        # out = img.load()
+        # test = LColor()
+        # peeking.fetchPixel(test, 0, 0)
+        tex = buffer.getScreenshot()
+        data = tex.getRamImageAs('RGBA')
+        # image = numpy.frombuffer(data, numpy.uint8)
+        # print(tex.getYSize(), tex.getXSize(), tex.getNumComponents())
+        # for i in range(0, 32, 4):
+        #     print(image[i:i+4])
+        # image.shape = (tex.getYSize(), tex.getXSize(), tex.getNumComponents())
+        img = Image.frombuffer('RGBA', (tex.getYSize(), tex.getXSize()), data).transpose(Image.FLIP_TOP_BOTTOM)
+        # if celestial:
+        #     xoff = round((f + foff) * 0.3)
+        #     yoff = round((f + foff) * 0.6)
+        #     tpn = numpy.asarray(img).tolist()
+        #     yarr = example_cython.runstuff(tpn, npn, xoff, yoff)
+        #     img = Image.fromarray(numpy.uint8(yarr), 'RGBA')
+        #     # ul = underlay.load()
+        #     # id = img.getdata()
+        #     # il = img.load()
+        #     # i = 1
+        #     # for pixel in id:
+        #     #     r, g, b, a = pixel
+        #     #     x = i % (120)
+        #     #     y = math.trunc(i / 120)
+        #     #     i += 1
+        #     #     h, s, v = colorsys.rgb_to_hsv(r, g, b)
+        #     #     if h < 10/360 or h > 350/360:
+        #     #         if s > 30/100 and v > 30/100:
+        #     #             il[x, y] = ul[x, y]
+        #
+        #     # # ul = underlay.load()
+        #     # il = img.load()
+        #     # for x in range(width):
+        #     #     for y in range(height):
+        #     #         r, g, b, a = il[x, y]
+        #     #         h, s, v = colorsys.rgb_to_hsv(r, g, b)
+        #     #         if h < 10/360 or h > 350/360:
+        #     #             if s > 30/100 and v > 30/100:
+        #     #                 il[x, y] = ul[x, y]
+        # alpha = img.split()[3]
+        # img = img.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
+        # mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+        # img.paste(255, mask)
+        images.append(img)
+        if vect == (0, 0, 0):
+            timd += 1
+            if timd > 20:
+                break
+        else:
+            timd = 0
+        # if f > 50:
+        #     if ImageChops.difference(images[-1], images[-2]).getbbox() is None:
+        #         timd += 1
+        #         end = timd
+        #         if timd > 250:
+        #             end = 250
+        #             break
+        #     else:
+        #         timd = 0
+        #         end = 1
+    for f in range(len(images)):
+        img = images[f]
+        # if celestial:
+        #     xoff = round((f + foff) * 0.3)
+        #     yoff = round((f + foff) * 0.6)
+        #     tpn = numpy.asarray(img).tolist()
+        #     yarr = example_cython.runstuff(tpn, npn, xoff, yoff)
+        #     img = Image.fromarray(numpy.uint8(yarr), 'RGBA')
+        # alpha = img.split()[3]
+        # # img = img.convert('RGB').convert('P', palette=Image.WEB, colors=64)
+        # img = img.quantize(24, Image.FASTOCTREE, 0, Image.WEB)
+        # mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+        # img.paste(255, mask)
+        images[f] = img
+    images.append(duration)
+    return images

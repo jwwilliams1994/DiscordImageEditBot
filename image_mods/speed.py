@@ -3,7 +3,10 @@ import os, glob, time, asyncio
 import math, random
 
 
-def speedtext(inputText, red, green, blue, intensity, emojiId):
+pause_for = [',', ';', ':', '.', '-', '~', '?', '!']
+
+
+def speedtext(inputText="pock is ho", red=255, green=255, blue=255, intensity=100, pauses=True, mult=2):
     intensity = round(intensity) * 10
     if intensity < 20:
         intensity = 20
@@ -17,8 +20,16 @@ def speedtext(inputText, red, green, blue, intensity, emojiId):
     # canv = Image.open('canvas.png').resize((1400,1400))
     # canv = canv.crop((0,0,xd,yd))
     canvas = Image.open('canvas.png').resize((xd, yd))
+    dur_arr = []
     images = []
     for i in range(len(listy)):
+        if pauses:
+            if listy[i][-1] in pause_for or listy[i] == listy[-1]:
+                dur_arr.append(round(intensity * mult))
+            else:
+                dur_arr.append(intensity)
+        else:
+            dur_arr.append(intensity)
         canvas2 = canvas.copy()
         canv = Image.open('canvas.png').resize((xd, yd))
         d1 = ImageDraw.Draw(canv)
@@ -27,10 +38,6 @@ def speedtext(inputText, red, green, blue, intensity, emojiId):
         offset = round((xd - xd2) / 2)
         canvas2.paste(canv, (offset, 0))
         croppedImage = canvas2
-        alpha = croppedImage.split()[3]
-        croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(emojiId + 'speed.gif', save_all=True, append_images=images[1:], duration=intensity, loop=0, optimize=False, transparency=255, disposal=2)
-    return (emojiId + 'speed.gif')
+    images.append(dur_arr)
+    return images

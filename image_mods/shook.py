@@ -23,7 +23,7 @@ short = Image.open("BaseAwooga.png")
 shorts = False
 
 
-def processStaticImage(emoPng, emojiId):
+def processStaticImage(emoPng):
     emoPng = emoPng.convert("RGBA")
     one1 = Image.open("Base.png").copy()  # if emojiId != '681244980593164336' else Image.open("BaseAwooga.png").copy()
     two1 = Image.open("Arm.png").copy()
@@ -36,24 +36,23 @@ def processStaticImage(emoPng, emojiId):
     comp2 = Image.alpha_composite(one1, two1)
     for i in range(leng2):
         comp2.alpha_composite(emoPng.resize((width, height), Image.LANCZOS).rotate(rot2[i], Image.BICUBIC, expand=1), (X2[i], Y2[i]))
-    comp2.save(emojiId + 'hold.png', format='PNG')
-    return emojiId + 'hold.png'
+    return comp2
 
-def processGifImageT(emoGif, emojiId):
-    return processGifImage(emoGif, emojiId, True)
+def processGifImageT(emoGif):
+    return processGifImage(emoGif, True)
 
-def processGifImageF(emoGif, emojiId):
-    return processGifImage(emoGif, emojiId, False)
+def processGifImageF(emoGif):
+    return processGifImage(emoGif, False)
 
-def processGifImage(emoGif, emojiId, rando):
+def processGifImage(emoGif, rando):
     one1 = Image.open("Base.png").copy()
     two2 = Image.open("Arm.png").copy()
     images = []
     Offset1 = []
     Offset2 = []
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
-    wRatio = emoGif.width / emoGif.height
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    wRatio = emoGif[0].width / emoGif[0].height
     ## w*h = a, a = 4900, w = wR*h, (wR*h)*h = a, wR*h^2 = a
     height = round(math.sqrt(4900 / wRatio))
     width = round(wRatio * height)
@@ -69,27 +68,26 @@ def processGifImage(emoGif, emojiId, rando):
                 newframe = frame + Offset1[i]
                 if newframe >= totalFrames:
                     newframe = newframe - totalFrames
-                emoGif.seek(newframe)
-                emoFrame = emoGif.copy().convert('RGBA')
+                emoFrame = emoGif[newframe].copy().convert('RGBA')
                 onec.alpha_composite(emoFrame.resize((width, height), Image.LANCZOS).rotate(rot[i], Image.BICUBIC, expand=1), (X[i], Y[i]))
             comp2 = Image.alpha_composite(onec, twoc)
             for i in range(leng2):
                 newframe = frame + Offset2[i]
                 if newframe >= totalFrames:
                     newframe = newframe - totalFrames
-                emoGif.seek(newframe)
-                emoFrame = emoGif.copy().convert('RGBA')
+                # emoGif.seek(newframe)
+                emoFrame = emoGif[newframe].copy().convert('RGBA')
                 comp2.alpha_composite(emoFrame.resize((width, height), Image.LANCZOS).rotate(rot2[i], Image.BICUBIC, expand=1), (X2[i], Y2[i]))
             comp2 = comp2.resize((170, 227), Image.LANCZOS)
             images.append(comp2)
-        images[0].save(emojiId + 'hold.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=True)
-        return emojiId + 'hold.gif'
+        images.append(gifDuration)
+        return images
     else:
         return "Too many frames"
 
 bits = 300
 
-def processShookImage(emoPng, emojiId):
+def processShookImage(emoPng):
     images = []
     frames = 24 - 1
     ##img = Image.new('RGBA', (80,80), (0, 0 ,0 ,0))
@@ -111,17 +109,16 @@ def processShookImage(emoPng, emojiId):
         offsetY = round(1 * 0.2 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)))
         image2 = ImageChops.offset(image, offsetX, offsetY)
         croppedImage = image2.crop((0, 0, bits, round(bits*ratio)))
-        alpha = croppedImage.split()[3]
-        croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(str(emojiId) + 'shook.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return (str(emojiId) + 'shook.gif')
+    images.append(20)
+    return images
 
-def processShookGif(emoGif, emojiId):
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+
+def processShookGif(emoGif):
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
+    if type(gifDuration) is list:
+        gifDuration = gifDuration[0]
     if gifDuration < 20:
         gifDuration = 20
     frame_ratio = 20 / gifDuration
@@ -137,9 +134,7 @@ def processShookGif(emoGif, emojiId):
     for i in range(0, realFrames, 1):
         print(i)
         framePick = int(math.floor((i * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        # emoGif.save("dump/" + str(i) + "test.png")
-        emoPng = emoGif.copy().convert('RGBA')
+        emoPng = emoGif[framePick].copy().convert('RGBA')
         ##canvas = img2.copy()
         ratio = emoPng.height / emoPng.width
         if emoPng.width > bits:
@@ -153,19 +148,13 @@ def processShookGif(emoGif, emojiId):
         offsetY = round(1 * 0.2 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)))
         image2 = ImageChops.offset(image, offsetX, offsetY)
         croppedImage = image2.crop((0, 0, bits, round(bits*ratio)))
-        # croppedImage = croppedImage.quantize(colors=255, dither = Image.FLOYDSTEINBERG , method=Image.MEDIANCUT)
-        alpha = croppedImage.split()[3]
-        # croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=250)
-        croppedImage = croppedImage.convert('RGB').quantize(colors=255, dither = Image.FLOYDSTEINBERG , method=Image.MEDIANCUT)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
     print("saving...")
-    images[0].save(str(emojiId) + 'shook.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return (str(emojiId) + 'shook.gif')
+    images.append(20)
+    return images
 
 
-def processMoreShookImage(emoPng, emojiId):
+def processMoreShookImage(emoPng):
     images = []
     frames = 24 - 1
     ##img = Image.new('RGBA', (80,80), (0, 0 ,0 ,0))
@@ -187,18 +176,14 @@ def processMoreShookImage(emoPng, emojiId):
         offsetY = round(2 * 0.2 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)))
         image2 = ImageChops.offset(image, offsetX, offsetY)
         croppedImage = image2.crop((0, 0, bits, round(bits*ratio)))
-        alpha = croppedImage.split()[3]
-        croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(emojiId + 'moreshook.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    ##optimize(emojiId+'moreshook.gif')
-    return emojiId + 'moreshook.gif'
+    images.append(20)
+    return images
 
-def processMoreShookGif(emoGif, emojiId):
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+
+def processMoreShookGif(emoGif):
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
     if gifDuration < 20:
         gifDuration = 20
     frame_ratio = 20 / gifDuration
@@ -212,8 +197,7 @@ def processMoreShookGif(emoGif, emojiId):
     # emoPng = emoPng.convert('RGBA')
     for i in range(0, realFrames, 1):
         framePick = int(math.floor((i * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        emoPng = emoGif.copy().convert('RGBA')
+        emoPng = emoGif[framePick].copy().convert('RGBA')
         ##canvas = img2.copy()
         ratio = emoPng.height / emoPng.width
         if emoPng.width > bits:
@@ -227,17 +211,12 @@ def processMoreShookGif(emoGif, emojiId):
         offsetY = round(2 * 0.2 * math.sin(((2 * math.pi) / frequency2) * (i - frequency2)))
         image2 = ImageChops.offset(image, offsetX, offsetY)
         croppedImage = image2.crop((0, 0, bits, round(bits*ratio)))
-        alpha = croppedImage.split()[3]
-        croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(emojiId + 'moreshook.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    ##optimize(emojiId+'moreshook.gif')
-    return emojiId + 'moreshook.gif'
+    images.append(20)
+    return images
 
 
-def processCrazyShookImage(emoPng, emojiId):  # is this even used?
+def processCrazyShookImage(emoPng):  # is this even used?
     images = []
     frames = 60 - 1
     ##img = Image.new('RGBA', (80,80), (0, 0 ,0 ,0))
@@ -260,17 +239,12 @@ def processCrazyShookImage(emoPng, emojiId):  # is this even used?
         offsetY = round((i * 50 * ratio) / 60)
         image2 = ImageChops.offset(image, offsetX, offsetY)
         croppedImage = image2
-        alpha = croppedImage.split()[3]
-        croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(emojiId + 'crazyshook.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    ##optimize(emojiId+'crazyshook.gif')
-    return emojiId + 'crazyshook.gif'
+    images.append(20)
+    return images
 
 
-def processNukeImage(emoPng, emojiId):
+def processNukeImage(emoPng):
     images = []
     frametotal = 260
     frames = frametotal - 1
@@ -318,22 +292,17 @@ def processNukeImage(emoPng, emojiId):
                     if a > 0:
                         cropL[x, y] = (rend, gend, bend, 255)
         croppedImage = ImageEnhance.Brightness(croppedImage).enhance(exp + 1)
-        ##croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        croppedImage = croppedImage.convert('P', palette=Image.ADAPTIVE, colors=255)
-        croppedImage.quantize(30)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(emojiId + 'nuke.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return emojiId + 'nuke.gif'
+    images.append(20)
+    return images
 
 
-def processNukeGif(emoGif, emojiId):
+def processNukeGif(emoGif):
     images = []
     frametotal = 260
     frames = frametotal - 1
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
     if gifDuration < 20:
         gifDuration = 100
     frame_ratio = 20 / gifDuration
@@ -344,8 +313,7 @@ def processNukeGif(emoGif, emojiId):
     # emoPng = emoPng.convert('RGBA')
     for i in range(0, frames, 1):
         framePick = int(math.floor((i * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        emoPng = emoGif.copy().convert('RGBA')
+        emoPng = emoGif[framePick].copy().convert('RGBA')
         mult = (i / frametotal) * 1.9 * 2 + 0.2
         if i >= 180:
             endt = (i - 180)
@@ -384,14 +352,9 @@ def processNukeGif(emoGif, emojiId):
                     if a > 0:
                         cropL[x, y] = (rend, gend, bend, 255)
         croppedImage = ImageEnhance.Brightness(croppedImage).enhance(exp + 1)
-        # croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        croppedImage = croppedImage.convert('P', palette=Image.ADAPTIVE, colors=255)
-        croppedImage.quantize(30)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(emojiId + 'nuke.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return emojiId + 'nuke.gif'
+    images.append(20)
+    return images
 
 
 def jumble(arr):
@@ -423,15 +386,13 @@ def holdImage(arr):  # there are 9 total image spots
 
 
 def processStaticRangeImage(*args):
-    emojiId = args[-1]
-    images = [*args[:-1]]
+    images = [*args]
     need = math.ceil(9 / len(images))
     out = []
     for i in range(need):
         out.extend(jumble(images.copy()))
     held = holdImage(out)
-    held.save(str(emojiId) + 'held.png')
-    return str(emojiId) + 'held.png'
+    return held
 
 
 def shaking(inp, frame, intensity):
@@ -460,7 +421,7 @@ def shaking(inp, frame, intensity):
     return croppedImage
 
 
-def processShookImage2(emoPng, intensity, emojiId):
+def processShookImage2(emoPng, intensity):
     emoPng.convert('RGBA')
     images = []
     frames = 24 - 1
@@ -468,18 +429,14 @@ def processShookImage2(emoPng, intensity, emojiId):
     frequency2 = 6
     for i in range(0, frames, 1):
         out = shaking(emoPng.copy(), i, intensity)
-        alpha = out.split()[3]
-        out = out.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        out.paste(255, mask)
         images.append(out)
-    images[0].save(str(emojiId) + 'shook.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return (str(emojiId) + 'shook.gif')
+    images.append(20)
+    return images
 
 
-def processShookGif2(emoGif, intensity, emojiId):
-    totalFrames = emoGif.n_frames
-    gifDuration = emoGif.info['duration']
+def processShookGif2(emoGif, intensity):
+    totalFrames = len(emoGif) - 1
+    gifDuration = emoGif[-1]
     images = []
     frames = 24 - 1
     frequency = 3
@@ -487,13 +444,8 @@ def processShookGif2(emoGif, intensity, emojiId):
     frame_ratio = 20 / gifDuration
     for i in range(0, frames, 1):
         framePick = int(math.floor((i * frame_ratio) % totalFrames))
-        emoGif.seek(framePick)
-        img = emoGif.copy().convert('RGBA')
+        img = emoGif[framePick].copy().convert('RGBA')
         out = shaking(img, i, intensity)
-        alpha = out.split()[3]
-        out = out.convert('RGB').quantize(colors=255, method=Image.MAXCOVERAGE, dither=Image.NONE)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        out.paste(255, mask)
         images.append(out)
-    images[0].save(str(emojiId) + 'shook.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return (str(emojiId) + 'shook.gif')
+    images.append(20)
+    return images

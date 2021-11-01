@@ -2,7 +2,9 @@ from PIL import Image, ImageFilter, GifImagePlugin, ImageSequence, ImageChops, I
 import os, glob, time, asyncio
 import math, random
 
-def JpegImage(emoPng,emojiId):
+
+def JpegImage(emoPng):
+    emojiId = str(random.randint(0, 99999))
     image_width, image_height = emoPng.size
     emoPng = emoPng.convert('YCbCr')
     emoPng = ImageEnhance.Contrast(emoPng).enhance(4)
@@ -14,10 +16,11 @@ def JpegImage(emoPng,emojiId):
     emoPng = Image.open(emojiId+'Jpegged.jpg')
     emoPng = emoPng.resize((round(image_width*1.5),round(image_height*1.5)),resample=Image.BILINEAR)
     emoPng = ImageEnhance.Contrast(emoPng).enhance(4)
-    emoPng.save(str(emojiId)+'Jpegged.jpg', quality=0)
-    return (str(emojiId)+'Jpegged.jpg')
+    return emoPng
 
-def JpegGif(emoGif,emojiId):
+
+def JpegGif(emoGif):
+    emojiId = str(random.randint(0, 99999))
     images = []
     totalFrames = emoGif.n_frames
     gifDuration = emoGif.info['duration']
@@ -37,10 +40,6 @@ def JpegGif(emoGif,emojiId):
         frame_image = frame_image.resize((round(image_width*1.5),round(image_height*1.5)),resample=Image.BILINEAR)
         frame_image = ImageEnhance.Contrast(frame_image).enhance(4)
         frame_image = frame_image.convert('RGBA')
-        alpha = frame_image.split()[3]
-        frame_image = frame_image.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <=128 else 0)
-        frame_image.paste(255, mask)
         images.append(frame_image)
-    images[0].save(str(emojiId)+'Jpegged.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, transparency=255, disposal=2)
-    return (str(emojiId)+'Jpegged.gif')
+    images.append(gifDuration)
+    return images

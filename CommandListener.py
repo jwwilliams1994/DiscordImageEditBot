@@ -3,13 +3,13 @@ import random
 import datetime
 import json
 from multiprocessing.connection import Client
-
-import discord
+import discord  # discord.py needs replacing sometime as the author is no longer updating the library
 import discord.ext
 from discord.ext import commands
 from dotenv import load_dotenv
-from mcstatus import MinecraftServer
-
+# from mcstatus import MinecraftServer
+from image_mods.drawCalendar import make_calendar, add_event, get_events, remove_events, get_week
+from image_mods.richardFacts import add_fact, get_facts, remove_fact
 commandList = []
 
 load_dotenv()
@@ -18,7 +18,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 bot = commands.Bot(command_prefix='.')
 
 
-@bot.command(name='img')  # is no command name at all a valid thing...? maybe explore later
+@bot.command(name='img')
 async def commanding(ctx, *, message):
     pass
     try:
@@ -28,6 +28,17 @@ async def commanding(ctx, *, message):
     except Exception as e:
         await ctx.channel.send(str(e))
         print(e)
+
+
+@bot.command(name='get_palettes')
+async def get_palettes(ctx):
+    p_arr = []
+    for file in os.listdir():
+        if file[-12:] == "_palette.png":
+            p_arr.append(file[:-12])
+    outstring = ', '.join(p_arr)
+    await ctx.channel.send("The following palettes are available:")
+    await ctx.channel.send(outstring)
 
 
 @bot.command(name='read')
@@ -52,8 +63,7 @@ async def magicConch(ctx):
     answer = random.randint(0, 19)
     client = Client(('localhost', 4000))
     response = ":shell:" + conchAnswers[answer]
-    # payload = [context.message.channel.id, response]  # payload is [0] == channel id, [1] == message/filename
-    payload = json.dumps({"channel": ctx.channel.id, "message_id": ctx.message.id, "userinput": None, "response_id": None, "output": response})
+    payload = {"channel": ctx.channel.id, "message_id": ctx.message.id, "userinput": None, "response_id": None, "output": response}
     client.send(payload)
 
 # @bot.command(name='temp')
@@ -72,10 +82,10 @@ async def givetime(ctx):
     minutesten = ["O\'", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"]
     minutesone = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
     minutesteen = ["", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"]
-    if d.hour > 12 + 5:
-        first = hours[d.hour - 12 - 6]
+    if d.hour > 12 + 4:
+        first = hours[d.hour - 12 - 5]
     else:
-        first = hours[d.hour - 6]
+        first = hours[d.hour - 5]
     if d.minute < 11 or d.minute > 19:
         if d.minute >= 10:
             if str(d.minute)[1] != "0":
@@ -99,6 +109,64 @@ async def givetime(ctx):
     string = "The time is: " + first + " " + second + " and " + third + " seconds."
     await ctx.channel.send(string)
 
+
+@bot.command(name='calendar')
+async def calendar_page(context, min: int = 0, max: int = 360, tile: int = 100):
+    returned = make_calendar(min, max, tile)
+    await context.channel.send(file=discord.File(returned))
+    os.remove(returned)
+
+
+@bot.command(name='week')
+async def calendar_week(context, min: int = 0, max: int = 360, tile: int = 100):
+    returned = get_week(min, max, tile)
+    await context.channel.send(file=discord.File(returned))
+    os.remove(returned)
+
+
+@bot.command(name='add_event')
+async def event_add(context, year: int, month: int, day: int, *args):
+    string = ' '.join(args)
+    returned = add_event(string, year, month, day)
+    await context.channel.send(returned)
+
+
+@bot.command(name='get_events')
+async def get_event(context, year: int, month: int, day: int):
+    returned = get_events(year, month, day)
+    await context.channel.send(returned)
+
+
+@bot.command(name='remove_event')
+async def remove_event(context, year: int, month: int, day: int, index: int = 0):
+    returned = remove_events(year, month, day, index)
+    await context.channel.send(returned)
+
+
+@bot.command(name='facts')  # facts is a json dictionary, with each name being associated to a list of user-curated 'facts'
+async def get_f(context, name: str):
+    returned = get_facts(name.capitalize())
+    await context.channel.send(returned)
+
+
+@bot.command(name='add_fact')
+async def add_f(context, name: str, *args):
+    string = ' '.join(args)
+    returned = add_fact(name.capitalize(), string)
+    emoji = bot.get_emoji(562674675981746191)
+    await context.message.add_reaction(emoji)
+
+
+@bot.command(name='remove_fact')
+async def rem_f(context, name: str, index: int):
+    returned = remove_fact(name.capitalize(), index)
+    if returned == "success":
+        emoji = bot.get_emoji(562674675981746191)
+    else:
+        emoji = bot.get_emoji(751114641048076413)
+    await context.message.add_reaction(emoji)
+
+
 @bot.command(name='why')
 async def fortheglory(context):
     ##glory = Image.open('forthegloryofsatan.jpg')
@@ -118,11 +186,6 @@ async def iguess(context, *, message):
         await context.channel.send('https://i.imgur.com/MMaciGr.gif')
 
 
-@bot.command(name='test')
-async def test(ctx):
-    await ctx.channel.send('<:hcjGrip:309376596903723008>')
-
-
 @bot.command(name='pfp')
 async def getp(ctx, id):
     try:
@@ -133,9 +196,11 @@ async def getp(ctx, id):
         await ctx.channel.send(e)
 
 
-@bot.command(name='God')
-async def doyouthink(context):
-    await context.channel.send('http://216.221.197.172:8081/albums/DoYouThink/DoYouThink.webm')
+# defunct as self-host is down
+# @bot.command(name='God')
+# async def doyouthink(context):
+#     await context.channel.send('http://216.221.197.172:8081/albums/DoYouThink/DoYouThink.webm')
+
 
 @bot.command(name="<:googleturtle:562674675981746191>")
 async def doyouthonk(context):
@@ -148,11 +213,24 @@ async def doyouthonk(context):
         await context.channel.send(role.mention)
 
 
-bot.remove_command('help')
+@bot.command(name='Mr')
+async def Toshi(ctx, arg):
+    if arg == 'Toshi':
+        role = await bot.fetch_user(459457502140956682)
+        await ctx.channel.send(role.mention)
+
+bot.remove_command('help')  # default help command with this library outputs a list of the commands, isn't particularly helpful in my case
 
 @bot.command(name='help')
 async def halp(context):
     await context.channel.send('<https://pastebin.com/cf5N0NP0>')
+
+
+@bot.command(name='temp')  # queries a raspberry pi with an atmospheric sensor attached, output is a rich discord message with the data
+async def temp(ctx):
+    client = Client(('192.168.50.46', 5002))
+    payload = {"channel": ctx.channel.id, "message_id": ctx.message.id, "userinput": "embed", "response_id": None, "output": None, "title": "3nd's Room", "url": None, "thumbnail": None}
+    client.send(payload)
 
 
 bot.run(TOKEN)

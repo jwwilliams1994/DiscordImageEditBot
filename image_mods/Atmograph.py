@@ -1,4 +1,5 @@
-import datetime
+import datetime, os
+from PIL import Image
 import mysql.connector
 from mysql.connector import Error
 import matplotlib
@@ -102,8 +103,9 @@ def make_patch_spines_invisible(ax):
 #         lines = [p1, p2, p3]
 #         plt.savefig(str(randId) + 'atmograph.png', transparent = False, bbox_inches = 'tight', pad_inches = 0.05)
 #         return str(randId) + 'atmograph.png'
-
-def atmograph2(mins, randId):
+from random import randint
+def atmograph2(mins):
+    randId = str(randint(11111, 999999))
     try:
         client = InfluxDBClient(host='localhost', port=8086)
         client.switch_database('Atmolog')
@@ -194,5 +196,7 @@ def atmograph2(mins, randId):
 
         lines = [p3, p2, p1]
         plt.savefig(str(randId) + 'atmograph.png', transparent = False, bbox_inches = 'tight', pad_inches = 0.05)
-        return str(randId) + 'atmograph.png'
+        img = Image.open(str(randId) + 'atmograph.png').copy().convert('RGBA')
+        os.remove(str(randId) + 'atmograph.png')
+        return img
 

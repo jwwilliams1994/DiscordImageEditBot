@@ -30,6 +30,22 @@ def listening():
         time.sleep(0.1)
 
 
+async def doRichEmbed(jsonPack):
+    channel = bot.get_channel(jsonPack['channel'])
+    if jsonPack['url'] is not None:
+        embed = discord.Embed(title=jsonPack['title'], url=jsonPack['url'])
+    else:
+        embed = discord.Embed(title=jsonPack['title'])
+    if jsonPack['thumbnail'] is not None:
+        embed.set_thumbnail(url=jsonPack['thumbnail'])
+    arr = jsonPack['response']
+    for i in arr:
+        val = arr[i]
+        embed.add_field(name=i, value=val, inline=True)
+    print('embedding...')
+    await channel.send(embed=embed)
+
+
 @bot.event
 async def on_ready():
     thr = threading.Thread(target=listening)
@@ -40,6 +56,9 @@ async def on_ready():
                 jsonPack = messageQueue.pop(0)
                 print(jsonPack)
                 channel = bot.get_channel(jsonPack['channel'])
+                if jsonPack['userinput'] == "embed":
+                    await doRichEmbed(jsonPack)
+                    continue
                 ichannel = bot.get_channel(555038123961090050)
                 if jsonPack['response_id'] is None:
                     if type(jsonPack['output']) is str:
@@ -55,12 +74,12 @@ async def on_ready():
                                     print(watchlist)
                                 except Exception as e:
                                     await channel.send(str(e))
-                                if jsonPack['output'][0:5].isdigit():
+                                if str(jsonPack['output'])[0:5].isdigit():
                                     os.remove(jsonPack['output'])
                             else:
                                 await channel.send('idk what you did, but I can\'t let you have that :\'(')
                         else:
-                            await channel.send(jsonPack['output'])
+                            await channel.send(str(jsonPack['output']))
                     else:
                         await channel.send(str(jsonPack['output']))
                 else:  # this is just mirrored logic because I'm too lazy to find a way to make it not so for now...

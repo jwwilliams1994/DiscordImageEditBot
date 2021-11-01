@@ -3,8 +3,7 @@ import os, glob, time, asyncio
 import math, random
 
 
-def intensifytext(inputText, red, green, blue, intensity, emojiId):
-    print(inputText, red, green, blue, intensity, emojiId)
+def intensifytext(inputText="pock is ho", red=255, green=255, blue=255, intensity=4):
     myFont = ImageFont.truetype('font/whitney-semibold.otf', 30)
     marker = 0
     if inputText == "BeeMovie ":
@@ -42,21 +41,24 @@ def intensifytext(inputText, red, green, blue, intensity, emojiId):
     frequency = 4
     frequency2 = 3
     canvas = Image.open('canvas.png').resize((xd + 50, yd + 50))
-    for i in range(0, frames, 1):
+    if intensity > 0:
+        for i in range(0, frames, 1):
+            image = canv
+            canvas.paste(image)
+            image = canvas
+            offsetX = round(math.sin(((2 * math.pi) / frequency2) * (i - frequency2))) * intensity
+            offsetY = round(math.sin(((2 * math.pi) / frequency) * (i - frequency))) * intensity
+            image2 = ImageChops.offset(image, offsetX, offsetY)
+            croppedImage = image2.crop((0, 0, xd, (yd + -20)))
+            images.append(croppedImage)
+        images.append(20)
+        return images
+    else:
         image = canv
         canvas.paste(image)
         image = canvas
-        offsetX = round(math.sin(((2 * math.pi) / frequency2) * (i - frequency2))) * intensity
-        offsetY = round(math.sin(((2 * math.pi) / frequency) * (i - frequency))) * intensity
-        image2 = ImageChops.offset(image, offsetX, offsetY)
-        croppedImage = image2.crop((0, 0, xd, (yd + -20)))
-        alpha = croppedImage.split()[3]
-        croppedImage = croppedImage.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-        croppedImage.paste(255, mask)
-        images.append(croppedImage)
-    images[0].save(emojiId + 'intense.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return (emojiId + 'intense.gif')
+        croppedImage = image.crop((0, 0, xd, (yd + -20)))
+        return croppedImage
 
 
 import datetime
@@ -97,7 +99,7 @@ def gettime():
 
 
 from math import floor
-def marqueetext(input, red, green, blue, speed, emojiId):
+def marqueetext(input="time", red=255, green=255, blue=255, speed=2):
     weed = False
     if input == "time":
         input = gettime()
@@ -123,5 +125,5 @@ def marqueetext(input, red, green, blue, speed, emojiId):
         # mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
         # croppedImage.paste(255, mask)
         images.append(croppedImage)
-    images[0].save(emojiId + 'marquee.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, disposal=2)
-    return (emojiId + 'marquee.gif')
+    images.append(20)
+    return images

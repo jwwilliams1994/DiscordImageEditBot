@@ -7,7 +7,8 @@ framesTotal = 38
 tTime = 5
 rx, ry = (105/168),(58/112)
 
-def processShootImage(emoPng,emojiId):
+
+def processShootImage(emoPng):
     images = []
     bullArr = []
     gun = Image.open('monkaShoot5.gif')
@@ -27,10 +28,6 @@ def processShootImage(emoPng,emojiId):
         if foff == tTime:
             bullArr.append([round(rx*168)-20,round(ry*112)-18])
         img2.alpha_composite(gun.convert('RGBA').resize((168,112),Image.LANCZOS))
-        alpha = img2.split()[3]
-        img2 = img2.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-        mask = Image.eval(alpha, lambda a: 255 if a <=128 else 0)
-        img2.paste(255, mask)
         images.append(img2.crop((0,0,300,112)))
-    images[0].save(emojiId+'Shoot.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, transparency=255, disposal=2)
-    return (str(emojiId)+'Shoot.gif')
+    images.append(20)
+    return images

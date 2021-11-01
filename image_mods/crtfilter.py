@@ -4,6 +4,15 @@ from PIL import Image, ImageOps, ImageFilter, ImageEnhance
 import requests, io, numpy, random
 
 
+def ups(im, t):
+    h, w = im.size
+    cv = Image.new('RGBA', (h * t, w * t), (0, 0, 0, 0))
+    for x in range(t):
+        for y in range(t):
+            cv.paste(im, (h * x, w * y))
+    return cv
+
+
 def clamp(inp, low, high):
     out = 0
     if inp < low:
@@ -47,7 +56,7 @@ def sli(uv, res, opacity):
 def pad(inp, rat):
     wid, hit = inp.size
     inp = inp.resize((round(wid * (1 + rat)), round(hit * (1 + rat))), Image.LANCZOS)
-    canv = Image.new('RGBA', (round(wid * (1 + (rat * 2))), round(hit * (1 + (rat * 2)))), (30, 30, 30, 255))
+    canv = Image.new('RGBA', (round(wid * (1 + (rat * 2))), round(hit * (1 + (rat * 2)))), (15, 15, 15, 255))
     wid2, hit2 = canv.size
     wid, hit = inp.size
     canv.alpha_composite(inp, (round((wid2 - wid)/2), round((hit2 - hit)/2)))
@@ -72,7 +81,7 @@ def pada(inp, r, g, b, a, rat):
 #     i = clamp()
 
 
-def crt(inp, widt, heit, noise):
+def crt(inp, widt, heit, noise, curv=3, opac=1.2):
     inp = pad(inp.convert('RGBA'), 0)
     width, height = round((widt)/4), round((heit)/4)
     width2, height2 = inp.size
@@ -112,10 +121,9 @@ def crt(inp, widt, heit, noise):
         for y in range(heit):
             xu = (x+0.5) / widt
             yu = (y+0.5) / heit
-            curv = 3
             xi, yi = curve(xu, yu, curv)
             pi = xu * yu * (1 - xu) * (1 - yu)
-            pi = clamp2(math.pow((widt / 4) * pi, 1.2), 0, 1)
+            pi = clamp2(math.pow((widt / 4) * pi, opac), 0, 1)
             # xsi = math.sin((xi) * heit * math.pi * 2)
             # xsi = (((0.5 * xsi) + 0.5) * 0.9) + 0.1
             # ysi = math.sin((yi) * widt * math.pi * 2)
@@ -137,76 +145,63 @@ def crt(inp, widt, heit, noise):
     return screen
 
 
-def cathodePng(img, ex, ey, emojiId):
+def cathodePng(img, ex, ey):
     image = crt(img, ex, ey, 0)
-    image.save(str(emojiId) + "crt.png")
-    return str(emojiId) + "crt.png"
+    return image
 
 
-def cathodeGif(img, ex, ey, emojiId):
-    totalFrames = img.n_frames
-    gifDuration = img.info['duration']
+def cathodeGif(img, ex, ey):
+    totalFrames = len(img) - 1
+    gifDuration = img[-1]
     images = []
     for f in range(totalFrames):
-        img.seek(f)
-        inp = img.copy()
+        inp = img[f].copy()
         out = crt(inp, ex, ey, 0)
-        out = out.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
+        #out = out.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
         images.append(out)
-    images[0].save(str(emojiId) + 'crt.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, disposal=2)
-    return str(emojiId) + 'crt.gif'
+    images.append(gifDuration)
+    return images
 
 
-def cathodePng2(img, ex, ey, noise, emojiId):
+def cathodePng2(img, ex, ey, noise):
     images = []
     for f in range(10):
         image = crt(img, ex, ey, noise)
-        image = image.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
+        #image = image.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
         images.append(image)
-    images[0].save(str(emojiId) + 'crt.gif', save_all=True, append_images=images[1:], duration=20, loop=0, optimize=False, disposal=2)
-    return str(emojiId) + 'crt.gif'
+    images.append(20)
+    return images
 
 
-def cathodeGif2(img, ex, ey, noise, emojiId):
-    totalFrames = img.n_frames
-    gifDuration = img.info['duration']
+def cathodeGif2(img, ex, ey, noise):
+    totalFrames = len(img) - 1
+    gifDuration = img[-1]
     images = []
     for f in range(totalFrames):
-        img.seek(f)
-        inp = img.copy()
+        inp = img[f].copy()
         out = crt(inp, ex, ey, noise)
-        out = out.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
+        #out = out.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
         images.append(out)
-    images[0].save(str(emojiId) + 'crt.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, disposal=2)
-    return str(emojiId) + 'crt.gif'
+    images.append(gifDuration)
+    return images
 
 
-def paddingPng(img, r, g, b, a, rat, emojiId):
+def paddingPng(img, r, g, b, a, rat):
     img = img.convert('RGBA')
     img = pada(img, r, g, b, a, rat)
-    img.save(str(emojiId) + 'pad.png')
-    return str(emojiId) + 'pad.png'
+    return img
 
 
-def paddingGif(img, r, g, b, a, rat, emojiId):
-    totalFrames = img.n_frames
-    gifDuration = img.info['duration']
+def paddingGif(img, r, g, b, a, rat):
+    totalFrames = len(img) - 1
+    gifDuration = img[-1]
     images = []
     for f in range(totalFrames):
-        img.seek(f)
-        im = img.copy()
-        im = im.convert('RGBA')
+        im = img[f].copy().convert('RGBA')
         im = pada(im, r, g, b, a, rat)
-        if a == 255:
-            im = im.convert('RGB').quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
-        else:
-            alpha = im.split()[3]
-            im = im.convert('RGB').convert('P', palette=Image.ADAPTIVE, colors=255)
-            mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
-            im.paste(255, mask)
         images.append(im)
-    images[0].save(str(emojiId) + 'pad.gif', save_all=True, append_images=images[1:], duration=gifDuration, loop=0, optimize=False, disposal=2)
-    return str(emojiId) + 'pad.gif'
+    images.append(gifDuration)
+    return images
 
 
 def crtd(inp, widt, heit, offset):
@@ -258,10 +253,7 @@ def crtd(inp, widt, heit, offset):
     return screen
 
 
-def crtdepth(wid, hit, offset, emojiId='0'):
-    if emojiId == '0':
-        emojiId = offset
-        offset = 0
+def crtdepth(wid, hit, offset):
     offset = clamp(offset, 0, 75)
     wid = int(wid)
     hit = int(hit)
@@ -311,5 +303,180 @@ def crtdepth(wid, hit, offset, emojiId='0'):
             il[x, y] = h, 255, 255
     img = img.convert('RGB')
     img = crtd(img, *img.size, offset)
-    img.save(str(emojiId) + 'depth.png')
-    return str(emojiId) + 'depth.png'
+    return img
+
+
+def cathodePng3(img, ex, ey, noise, curv, opac):
+    images = []
+    if noise > 0:
+        for f in range(10):
+            image = crt(img, ex, ey, noise, curv, opac)
+            #image = image.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
+            images.append(image)
+        images.append(20)
+        return images
+    else:
+        image = crt(img, ex, ey, noise, curv, opac)
+        return image
+
+
+def cathodeGif3(img, ex, ey, noise, curv, opac):
+    totalFrames = len(img) - 1
+    gifDuration = img[-1]
+    images = []
+    for f in range(totalFrames):
+        inp = img[f].copy()
+        out = crt(inp, ex, ey, noise, curv, opac)
+        #out = out.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
+        images.append(out)
+    images.append(gifDuration)
+    return images
+
+
+def crt2(inp, widt, heit, res=3, noise=0, curv=3, opac=1.2):
+    # img2 = Image.open("decomp/pepehands.png").convert('RGBA')
+    inp = pad(inp, 0)
+    if noise > 0:
+        xd, yd = inp.size
+        nl = inp.load()
+        for x in range(xd):
+            for y in range(yd):
+                nadd = random.randint(-noise, noise)
+                r, g, b, a = nl[x, y]
+                r = clamp(r + nadd, 0, 255)
+                g = clamp(g + nadd, 0, 255)
+                b = clamp(b + nadd, 0, 255)
+                nl[x, y] = r, g, b, a
+    mk = Image.open("TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacing.png").convert('RGBA')
+    h, w = mk.size
+    mk = ups(mk, res)
+    h, w = inp.size
+    inp = inp.resize((h * 4, w * 4), Image.LANCZOS)
+    mk = mk.resize(inp.size, Image.LANCZOS)
+    il2 = inp.load()
+    il = mk.load()
+    w, h = mk.size
+    for x in range(w):
+        for y in range(h):
+            r, g, b, a = il[x, y]
+            r2, g2, b2, a2 = il2[x, y]
+            r3 = round(r2 * (r / 255) * (a2 / 255))
+            g3 = round(g2 * (g / 255) * (a2 / 255))
+            b3 = round(b2 * (b / 255) * (a2 / 255))
+            il[x, y] = (r3, g3, b3, a)
+    inp = mk.copy()
+    width, height = round((widt)/1), round((heit)/1)
+    width2, height2 = inp.size
+    wratio1 = height / width
+    wratio2 = height2 / width2
+    img2 = inp.convert('RGBA')
+    if wratio1 > wratio2:  # so if 1 is skinnier tall than 2..., we'll be matching height and cutting sides off 2
+        # print("wide")
+        width3 = round((width2 / height2) * height)
+        img2 = img2.resize((width3, height), Image.LANCZOS).crop((round((width3 - width) / 2), 0, width + round((width3 - width) / 2), height))
+    elif wratio2 > wratio1:
+        # print("tall")
+        height3 = round((height2 / width2) * width)
+        img2 = img2.resize((width, height3), Image.LANCZOS).crop((0, round((height3 - height) / 2), width, height + round((height3 - height) / 2)))
+    elif wratio2 == wratio1:
+        # print("square")
+        img2 = img2.resize((width, height), Image.LANCZOS)
+    widt = widt * 3
+    heit = heit * 3
+    input = img2.resize((widt, heit), Image.LANCZOS)
+    screen = Image.new('RGB', (widt, heit), (30, 30, 30))
+    inl = input.load()
+    scl = screen.load()
+    for x in range(widt):
+        for y in range(heit):
+            xu = (x+0.5) / widt
+            yu = (y+0.5) / heit
+            xi, yi = curve(xu, yu, curv)
+            pi = xu * yu * (1 - xu) * (1 - yu)
+            pi = clamp2(pow((widt / 4) * pi, opac), 0, 1)
+            if 1 > xi > 0 and 1 > yi > 0:
+                r, g, b, a = inl[widt*xi, heit*yi]
+                r = round(r * pi * pi * 1.2)
+                g = round(g * pi * pi * 1.2)
+                b = round(b * pi * pi * 1.2)
+                a = 255
+                scl[x, y] = r, g, b
+            else:
+                scl[x, y] = 0, 0, 0
+    widt = round(widt / 3)
+    heit = round(heit / 3)
+    screen = screen.resize((widt, heit))
+    screen = screen.filter(ImageFilter.GaussianBlur(radius=0.1))
+    screen = ImageEnhance.Brightness(screen).enhance(1.4)
+    screen = ImageEnhance.Contrast(screen).enhance(1.2)
+    return screen
+
+
+def cathodePng4(img, ex, ey, res=4, noise=0):
+    image = crt2(img, ex, ey, res, noise)
+    return image
+
+
+def cathodeGif4(img, ex, ey, res=4, noise=0):
+    totalFrames = len(img) - 1
+    gifDuration = img[-1]
+    images = []
+    for f in range(totalFrames):
+        inp = img[f].copy().convert('RGBA')
+        out = crt2(inp, ex, ey, res, noise)
+        #out = out.quantize(colors=256, method=Image.MAXCOVERAGE, dither=Image.NONE)
+        images.append(out)
+    images.append(gifDuration)
+    return images
+
+
+def ntsc(img, amp=1):
+    img = img.convert('RGBA')
+    ic = img.resize((round(img.size[0] / 2), img.size[1])).copy()
+    cl = ic.load()
+    i_arr = []
+    q_arr = []
+    ia = []
+    qa = []
+    for x in range(ic.size[0]):
+        for y in range(ic.size[1]):
+            r, g, b, a = cl[x, y]
+            l, i, q = colorsys.rgb_to_yiq(r * (a / 255) / 255, g * (a / 255) / 255, b * (a / 255) / 255)
+            ia.append(i)
+            qa.append(q)
+        i_arr.append(ia)
+        q_arr.append(qa)
+        ia = []
+        qa = []
+    img = img.convert("L")
+    cv = Image.new("RGB", img.size, (0, 0, 0))
+    il = img.load()
+    cl = cv.load()
+    for x in range(img.size[0]):
+        for y in range(img.size[1]):
+            l = il[x, y]
+            i = i_arr[math.floor(clamp2(x / 2 + (ic.size[0] * 0.02 * amp), 0, len(i_arr)-1))][y]
+            q = q_arr[math.floor(clamp2(x / 2 + (ic.size[0] * -0.02 * amp), 0, len(i_arr)-1))][y]
+            r, g, b = colorsys.yiq_to_rgb(l/255, i, q)
+            r = round(r * 255)
+            g = round(g * 255)
+            b = round(b * 255)
+            cl[x, y] = (r, g, b)
+    return cv
+
+
+def ntscPng(img, amp):
+    image = ntsc(img, amp).convert('RGBA')
+    return image
+
+
+def ntscGif(img, amp):
+    totalFrames = len(img) - 1
+    gifDuration = img[-1]
+    images = []
+    for f in range(totalFrames):
+        inp = img[f].copy().convert('RGBA')
+        out = ntsc(inp, amp)
+        images.append(out)
+    images.append(gifDuration)
+    return images

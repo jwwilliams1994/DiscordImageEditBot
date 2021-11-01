@@ -2,10 +2,12 @@ from PIL import Image, ImageFilter, GifImagePlugin, ImageSequence, ImageChops, I
 import os, glob, time, asyncio
 import math, random
 
-def notBttvDef(emoPng, arg, emojiId):
-    return notBttv(emoPng, arg, 0, 0, 0, 1, emojiId)
 
-def notBttv(emoPng, arg, ex, ey, roty, scale, emojiId):
+def notBttvDef(emoPng, arg):
+    return notBttv(emoPng, arg, 0, 0, 0, 1)
+
+
+def notBttv(emoPng, arg, ex, ey, roty, scale):
     maskedArgs = ['hazmat','hazmatf']
     emoPng = emoPng.convert('RGBA')
     overlay = Image.open(arg+'.png').convert('RGBA')
@@ -58,10 +60,10 @@ def notBttv(emoPng, arg, ex, ey, roty, scale, emojiId):
         image2 = image2.crop((((image2.width-80)/2),((image2.height-80)/2),image2.width-((image2.width-80)/2),image2.height-((image2.height-80)/2)))
         canvas80.alpha_composite(image2,(round((80-image2.width)/2),round((80-image2.height)/2)))
     canvas80.convert('RGBA')
-    canvas80.save(emojiId+'overlay.png')
-    return (str(emojiId)+'overlay.png')
+    return canvas80
 
-def notBttvImg(emoPng, arg, ex, ey, roty, scale, alpha, emojiId):
+
+def notBttvImg(emoPng, arg, ex, ey, roty, scale, alpha):
     maskedArgs = ['hazmat','hazmatf']
     emoPng = emoPng.convert('RGBA')
     print(type(arg))
@@ -129,18 +131,54 @@ def notBttvImg(emoPng, arg, ex, ey, roty, scale, alpha, emojiId):
         #emoPng.alpha_composite(canvas, (round((width * ex) - (ovX / 2)), round((height * ey) - (ovY / 2))))
         emoPng.alpha_composite(canvas, (0, 0))
     emoPng.convert('RGBA')
-    emoPng.save(emojiId+'overlay.png')
-    return str(emojiId)+'overlay.png'
+    return emoPng
 
-def overlayGif(emoGif, overlayed, ex, ey, roty, scale, alpha, emojiId):
-    width, height = emoGif.size
-    gif1, gif2 = False, False
-    if emoGif.info == {}:
-        gif1 = True
-    if overlayed.info == {}:
-        gif2 = True
-    if gif1 == gif2:
-        return "wrong, idiot"
+
+def hazmat(inp, ex=0, ey=0, scale=1):
+    inp = inp.convert("RGBA")
+    overlay = Image.open("hazmat.png")
+    canvas = Image.new("RGBA", overlay.size, (0, 0, 0, 0))
+    mask = Image.open("hazmatmask.png")
+    width, height = inp.size
+    width2, height2 = overlay.size
+    if width == height:
+        inp = inp.resize((width2, height2), Image.LANCZOS)
+    if height > width:
+        wratio = width / height
+        width2 = wratio * height2
+        inp = inp.resize((round(width2), height2), Image.LANCZOS)
+    if width > height:
+        hratio = height / width
+        height2 = hratio * width2
+        inp = inp.resize((width2, round(height2)), Image.LANCZOS)
+    width, height = inp.size
+    inp = inp.resize((round(width * scale), round(height * scale)), Image.LANCZOS)
+    canvas.alpha_composite(inp, (ex, ey))
+    cl = canvas.load()
+    ml = mask.load()
+    for x in range(canvas.size[0]):
+        for y in range(canvas.size[1]):
+            if ml[x, y] == (255, 255, 255):
+                cl[x, y] = (0, 0, 0, 0)
+    canvas.alpha_composite(overlay)
+    return canvas
+
+
+def hazmatPng(inp, ex=0, ey=0, scale=1):
+    return hazmat(inp, ex, ey, scale)
+
+
+def hazmatGif(inp, ex=0, ey=0, scale=1):
+    n_frames = len(inp) - 1
+    duration = inp[-1]
+    width, height = inp[0].size
+    images = []
+    for f in range(n_frames):
+        images.append(hazmat(inp[f], ex, ey, scale))
+    images.append(duration)
+    return images
+
+
 
 # img = Image.open("testem2.png")
 # notBttvImg(img, "think", 0.5, 0.5, 0, 0.1, 0.5, "88")
